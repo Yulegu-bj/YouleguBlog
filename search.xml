@@ -1,0 +1,1626 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>Django中创建自定义错误页面（400，403，404，500）</title>
+    <url>/2021/03/11/Django%E4%B8%AD%E5%88%9B%E5%BB%BA%E8%87%AA%E5%AE%9A%E4%B9%89%E9%94%99%E8%AF%AF%E9%A1%B5%E9%9D%A2%EF%BC%88400%EF%BC%8C403%EF%BC%8C404%EF%BC%8C500%EF%BC%89/</url>
+    <content><![CDATA[<p>在浏览网页的时候，浏览者可能会输入错误的URL，或者访问的网页不再存在是很常见的。这种情况下，你一般都会怎么处理呢？</p>
+<a id="more"></a>
+<h2 id="有三种选择"><a href="#有三种选择" class="headerlink" title="有三种选择"></a>有三种选择</h2><ol>
+<li>重定向到网站的首页；</li>
+<li>显示无聊的400/403/404/500页面，并提供一链接可链接至首页；</li>
+<li>创建一有趣的自定义400/403/404/500错误页面。</li>
+</ol>
+<h2 id="这篇文章主要介绍在Django中如何自定义错误页面，分为下面四个步骤"><a href="#这篇文章主要介绍在Django中如何自定义错误页面，分为下面四个步骤" class="headerlink" title="这篇文章主要介绍在Django中如何自定义错误页面，分为下面四个步骤"></a>这篇文章主要介绍在Django中如何自定义错误页面，分为下面四个步骤</h2><ol>
+<li><p>创建自定义错误页面<br>在项目的templates目录下，创建errors目录，然后在此目录下分别创建好page_400.html，page_403.html，page_404.html，page_500.html。</p>
+</li>
+<li><p>修改settings.py设置<br>修改项目目录下的settings.py，设置 DEBUG=False 以及 ALLOWED_HOST=[“*”] 。这是因为自定义的错误页面只会在非调试模式下生效。</p>
+</li>
+<li><p>修改视图<br>在项目的views.py中，创建如下的错误页面处理方法：</p>
+<p> from django.shortcuts import render</p>
+<p> def bad_request(request):<br>  return render(request,’errors/page_400.html’)</p>
+<p> def permission_denied(request):<br>  return render(request,’errors/page_403.html’)</p>
+<p> def page_not_found(request):<br>  return render(request,’errors/page_404.html’)</p>
+<p> def server_error(request):<br>  return render(request,’errors/page_500.html’)</p>
+</li>
+<li><p>配置urls<br>在项目的urls.py文件中，导入handler400，handler403，handler404，handler500，重新设置错误页面的处理为我们上面views.py里创建的方法：<br> from . import views<br> from django.conf.urls import handler400, handler403, handler404, handler500</p>
+</li>
+</ol>
+<pre><code>urlpatterns = [
+ url(r&#39;^admin/&#39;, admin.site.urls),
+ url(r&#39;^myapp/&#39;, include(&#39;myapp.urls&#39;, namespace=&#39;myapp&#39;)),
+] 
+
+handler400 = views.bad_request
+handler403 = views.permission_denied
+handler404 = views.page_not_found
+handler500 = views.server_error</code></pre>
+<p>至此，重新运行，输入错误的网址可以看到显示的是我们创建的自定义404页面。<br>注意<br>若你使用的是Django 2.0版本，则上述会报如下的错误：<br>“handler404() got an unexpected keyword argument ‘exception’”<br>这是因为在新版本中内置的错误处理方法签名有更改导致的，具体可以看：        <span class="exturl" data-url="aHR0cHM6Ly9kb2NzLmRqYW5nb3Byb2plY3QuY29tL2VuLzIuMC9yZWYvdmlld3MvI2Vycm9yLXZpZXdz">https://docs.djangoproject.com/en/2.0/ref/views/#error-views<i class="fa fa-external-link-alt"></i></span><br>只需要在修改views.py中代码为：</p>
+<p>```<br>from django.shortcuts import render</p>
+<p>def bad_request(request, exception, template_name=’errors/page_400.html’):<br> return render(request, template_name)</p>
+<p>def permission_denied(request, exception, template_name=’errors/page_403.html’):<br> return render(request, template_name)</p>
+<p>def page_not_found(request, exception, template_name=’errors/page_404.html’):<br> return render(request, template_name)</p>
+<p>def server_error(request, exception, template_name=’errors/page_500.html’):<br> return render(request, template_name)<br> ```bash</p>
+]]></content>
+      <categories>
+        <category>python</category>
+        <category>django</category>
+      </categories>
+      <tags>
+        <tag>python</tag>
+        <tag>django</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ElasticSearch开启用户密码登录</title>
+    <url>/2020/04/22/ElasticSearch%E5%BC%80%E5%90%AF%E7%94%A8%E6%88%B7%E5%AF%86%E7%A0%81%E7%99%BB%E5%BD%95/</url>
+    <content><![CDATA[<h2 id="ElasticSearch开启用户验证"><a href="#ElasticSearch开启用户验证" class="headerlink" title="ElasticSearch开启用户验证"></a>ElasticSearch开启用户验证</h2><p>1.需要在配置文件中开启x-pack验证, 修改config目录下面的elasticsearch.yml文件，在里面添加如下内容,并重启</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xpack.security.enabled: <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>2.设置用户密码</p>
+<!-- more -->
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bin/elasticsearch-setup-passwords interactive</span><br><span class="line">Initiating the setup of passwords <span class="keyword">for</span> reserved users elastic,apm_system,kibana,logstash_system,beats_system,remote_monitoring_user.</span><br><span class="line">You will be prompted to enter passwords as the process progresses.</span><br><span class="line">Please confirm that you would like to <span class="built_in">continue</span> [y/N]y</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Enter password <span class="keyword">for</span> [elastic]: </span><br><span class="line">Reenter password <span class="keyword">for</span> [elastic]: </span><br><span class="line">Enter password <span class="keyword">for</span> [apm_system]: </span><br><span class="line">Reenter password <span class="keyword">for</span> [apm_system]: </span><br><span class="line">Enter password <span class="keyword">for</span> [kibana]: </span><br><span class="line">Reenter password <span class="keyword">for</span> [kibana]: </span><br><span class="line">Enter password <span class="keyword">for</span> [logstash_system]: </span><br><span class="line">Reenter password <span class="keyword">for</span> [logstash_system]: </span><br><span class="line">Enter password <span class="keyword">for</span> [beats_system]: </span><br><span class="line">Reenter password <span class="keyword">for</span> [beats_system]: </span><br><span class="line">Enter password <span class="keyword">for</span> [remote_monitoring_user]: </span><br><span class="line">Reenter password <span class="keyword">for</span> [remote_monitoring_user]: </span><br><span class="line">Changed password <span class="keyword">for</span> user [apm_system]</span><br><span class="line">Changed password <span class="keyword">for</span> user [kibana]</span><br><span class="line">Changed password <span class="keyword">for</span> user [logstash_system]</span><br><span class="line">Changed password <span class="keyword">for</span> user [beats_system]</span><br><span class="line">Changed password <span class="keyword">for</span> user [remote_monitoring_user]</span><br><span class="line">Changed password <span class="keyword">for</span> user [elastic]</span><br></pre></td></tr></table></figure>
+<p>3.在kibana中config下面kibana.yml文件中增加配置</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">elasticsearch.username: <span class="string">&quot;elastic&quot;</span></span><br><span class="line">elasticsearch.password: <span class="string">&quot;password&quot;</span></span><br></pre></td></tr></table></figure>
+<p>ps:注意要重启kibana</p>
+]]></content>
+      <tags>
+        <tag>elasticsearch</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>HTTPS原理</title>
+    <url>/2020/03/25/HTTPS%E5%8E%9F%E7%90%86/</url>
+    <content><![CDATA[<p>HTTPS（全称： Hypertext Transfer Protocol Secure，超文本传输安全协议），是以安全为目标的HTTP通道，简单讲是HTTP的安全版。本文，就来深入介绍下其原理。</p>
+<h1 id="为什么需要https"><a href="#为什么需要https" class="headerlink" title="为什么需要https"></a>为什么需要https</h1><p>使用https的原因其实很简单，就是因为http的不安全。</p>
+<p>当我们往服务器发送比较隐私的数据（比如说你的银行卡，身份证）时，如果使用http进行通信。那么安全性将得不到保障。  </p>
+<a id="more"></a>
+
+<p>首先数据在传输的过程中，数据可能被中间人抓包拿到，那么数据就会被中间人窃取。  </p>
+<p>其次数据被中间人拿到后，中间人可能对数据进行修改或者替换，然后发往服务器。<br>最后服务器收到数据后，也无法确定数据有没有被修改或替换，当然，如果服务器也无法判断数据就真的是来源于客户端。<br>总结下来，http存在三个弊端：<br>•    无法保证消息的保密性<br>•    无法保证消息的完整性和准确性<br>•    无法保证消息来源的可靠性<br>https就是为了解决上述问题应运而生的。  </p>
+<h1 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h1><p>为了解决http中存在的问题，https采用了一些加解密，数字证书，数字签名的技术来实现。下面先介绍一下这些技术的基本概念<br>对称加密与非对称加密<br>为了保证消息的保密性，就需要用到加密和解密。加解密算法目前主流的分为对称加密和非对称加密。  </p>
+<h2 id="对称加密"><a href="#对称加密" class="headerlink" title="对称加密"></a>对称加密</h2><p>对称加密（共享密匙加密）：客户端和服务器公用一个密匙用来对消息加解密，这种方式称为对称加密。客户端和服务器约定好一个加密的密匙。客户端在发消息前用该密匙对消息加密，发送给服务器后，服务器再用该密匙进行解密拿到消息。</p>
+<h2 id="对称加密的优点"><a href="#对称加密的优点" class="headerlink" title="对称加密的优点"></a>对称加密的优点</h2><p>•    对称加密解决了http中消息保密性的问题</p>
+<h3 id="对称加密的缺点"><a href="#对称加密的缺点" class="headerlink" title="对称加密的缺点"></a>对称加密的缺点</h3><p>•    对称加密虽然保证了消息保密性，但是因为客户端和服务器共享一个密匙，这样就使得密匙特别容易泄露。<br>•    因为密匙泄露风险较高，所以很难保证消息来源的可靠性、消息的完整性和准确性。</p>
+<h2 id="非对称加密"><a href="#非对称加密" class="headerlink" title="非对称加密"></a>非对称加密</h2><p>非对称加密（公有密匙加密）：既然对称加密中，密匙那么容易泄露，那么我们可以采用一种非对称加密的方式来解决。<br>采用非对称加密时，客户端和服务端均拥有一个公有密匙和一个私有密匙。公有密匙可以对外暴露，而私有密匙只有自己可见。<br>使用公有密匙加密的消息，只有对应的私有密匙才能解开。反过来，使用私有密匙加密的消息，只有公有密匙才能解开。这样客户端在发送消息前，先用服务器的公匙对消息进行加密，服务器收到后再用自己的私匙进行解密。  </p>
+<h3 id="非对称加密的优点"><a href="#非对称加密的优点" class="headerlink" title="非对称加密的优点"></a>非对称加密的优点</h3><p>•    非对称加密采用公有密匙和私有密匙的方式，解决了http中消息保密性问题，而且使得私有密匙泄露的风险降低。<br>•    因为公匙加密的消息只有对应的私匙才能解开，所以较大程度上保证了消息的来源性以及消息的准确性和完整性。  </p>
+<h3 id="非对称加密的缺点"><a href="#非对称加密的缺点" class="headerlink" title="非对称加密的缺点"></a>非对称加密的缺点</h3><p>•    非对称加密时需要使用到接收方的公匙对消息进行加密，但是公匙不是保密的，任何人都可以拿到，中间人也可以。那么中间人可以做两件事，第一件是中间人可以在客户端与服务器交换公匙的时候，将客户端的公匙替换成自己的。这样服务器拿到的公匙将不是客户端的，而是服务器的。服务器也无法判断公匙来源的正确性。第二件是中间人可以不替换公匙，但是他可以截获客户端发来的消息，然后篡改，然后用服务器的公匙加密再发往服务器，服务器将收到错误的消息。<br>•    非对称加密的性能相对对称加密来说会慢上几倍甚至几百倍，比较消耗系统资源。正是因为如此，https将两种加密结合了起来。  </p>
+<h1 id="数字证书与数字签名"><a href="#数字证书与数字签名" class="headerlink" title="数字证书与数字签名"></a>数字证书与数字签名</h1><p>为了解决非对称加密中公匙来源的不安全性。我们可以使用数字证书和数字签名来解决。</p>
+<h2 id="数字证书的申请"><a href="#数字证书的申请" class="headerlink" title="数字证书的申请"></a>数字证书的申请</h2><p>在现实中，有一些专门的权威机构用来颁发数字证书，我们称这些机构为认证中心（CA Certificate Authority）。<br>我们（服务器）可以向这些CA来申请数字证书。<br>申请的过程大致是：<br>自己本地先生成一对密匙，然后拿着自己的公匙以及其他信息（比如说企业名称啊什么的）去CA申请数字证书。<br>CA在拿到这些信息后，会选择一种单向Hash算法（比如说常见的MD5）对这些信息进行加密，加密之后的东西我们称之为摘要。<br>单向Hash算法有一种特点就是单向不可逆的，只要原始内容有一点变化，加密后的数据都将会是千差万别（当然也有很小的可能性会重复，有兴趣的小伙伴鸽巢原理了解一下），这样就防止了信息被篡改。<br>生成摘要后还不算完，CA还会用自己的私匙对摘要进行加密，摘要加密后的数据我们称之为数字签名。<br>最后，CA将会把我们的申请信息（包含服务器的公匙）和数字签名整合在一起，由此而生成数字证书。然后CA将数字证书传递给我们。</p>
+<h2 id="数字证书怎么起作用"><a href="#数字证书怎么起作用" class="headerlink" title="数字证书怎么起作用"></a>数字证书怎么起作用</h2><p>服务器在获取到数字证书后，服务器会将数字证书发送给客户端，客户端就需要用CA的公匙解密数字证书并验证数字证书的合法性。那我们如何能拿到CA的公匙呢？我们的电脑和浏览器中已经内置了一部分权威机构的根证书，这些根证书中包含了CA的公匙。</p>
+<p>之所以是根证书，是因为现实生活中，认证中心是分层级的，也就是说有顶级认证中心，也有下面的各个子级的认证中心，是一个树状结构，计算机中内置的是最顶级机构的根证书，不过不用担心，根证书的公匙在子级也是适用的。<br>客户端用CA的公匙解密数字证书，如果解密成功则说明证书来源于合法的认证机构。解密成功后，客户端就拿到了摘要。<br>此时，客户端会按照和CA一样的Hash算法将申请信息生成一份摘要，并和解密出来的那份做对比，如果相同则说明内容完整，没有被篡改。最后，客户端安全的从证书中拿到服务器的公匙就可以和服务器进行安全的非对称加密通信了。服务器想获得客户端的公匙也可以通过相同方式。<br>下图用图解的方式说明一般的证书申请及其使用过程。  </p>
+<h1 id="https原理"><a href="#https原理" class="headerlink" title="https原理"></a>https原理</h1><p>通过上面的学习，我们了解对称加密与非对称加密的特点和优缺点，以及数字证书的作用。https没有采用单一的技术去实现，而是根据他们的特点，充分的将这些技术整合进去，以达到性能与安全最大化。这套整合的技术我们称之为SSL（Secure Scoket Layer 安全套接层）。所以https并非是一项新的协议，它只是在http上披了一层加密的外壳。   </p>
+<p>https的建立<br>先看一下建立的流程图：  </p>
+<p>这里把https建立到断开分为6个阶段，12过程。下面将对12个过程一 一做解释<br>1.客户端通过发送Client Hello报文开始SSL通信。报文中包含客户端支持的SSL的指定版本、加密组件（Cipher Suite）列表（所使用的加密算法及密匙长度等）  。<br>2.服务器可进行SSL通信时，会以Server Hello报文作为应答。和客户端一样，在报文中包含SSL版本以及加密组件。服务器的加密组件内容时从接收到的客户端加密组件内筛选出来的。<br>3.服务器发送证书报文。报文中包含公开密匙证书。<br>4.最后服务器发送Server Hello Done报文通知客户端，最初阶段的SSL握手协商部分结束。<br>5.SSL第一次握手结束之后，客户端以Client Key Exchange报文作为回应。报文包含通信加密中使用的一种被称为Pre-master secret的随机密码串。该报文已用步骤3中的公开密匙进行加密。<br>6.接着客户端继续发送Change Cipher Spec报文。该报文会提示服务器，在此报文之后的通信会采用Pre-master secret密匙加密。<br>7.客户端发送Finished报文。该报文包含连接至今全部报文的整体校验值。这次握手协商是否能够成功，要以服务器是否能够正确解密该报文作为判定标准。<br>8.服务器同样发送Change Cipher Spec报文<br>9.服务器同样发送Finished报文<br>10.服务器和客户端的Finished报文交换完毕之后，SSL连接就算建立完成。当然，通信会收到SSL的保护。从此处开始进行应用层协议的通信，即发送HTTP请求。<br>11.应用层协议通信，即发送HTTP相应。<br>12.最后由客户端断开连接。断开连接时，发送close_notify报文。上图做了一些省略，这步之后再发送TCP FIN报文来关闭与TCP的通信。<br>另外，在以上流程图中，应用层发送数据时会附加一种叫做MAC（Message Authentication Code）的报文摘要。MAC能够查知报文是否遭到篡改，从而保证报文的完整性。<br>下面再用图解来形象的说明一下，此图比上面数字证书的图更加的详细一些（图片来源于《图解HTTP》）  </p>
+<p>经过上面的介绍，我们可以看出https先是利用数字证书保证服务器端的公匙可以安全无误的到达客户端。然后再用非对称加密安全的传递共享密匙，最后用共享密匙安全的交换数据。  </p>
+<h1 id="https的使用"><a href="#https的使用" class="headerlink" title="https的使用"></a>https的使用</h1><p>https那么的安全，是不是我们在什么场景下都要去使用https进行通信呢？答案是否定的。<br>1.https虽然提供了消息安全传输的通道，但是每次消息的加解密十分耗时，消息系统资源。所以，除非在一些对安全性比较高的场景下，比如银行系统，购物系统中我们必须要使用https进行通信，其他一些对安全性要求不高的场景，我们其实没必要使用https。<br>2.使用https需要使用到数字证书，但是一般权威机构颁发的数字证书都是收费的，而且价格也是不菲的，所以对于一些个人网站特别是学生来讲，如果对安全性要求不高，也没必要使用https。</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>LInux 常见的服务端口</title>
+    <url>/2020/03/27/LInux-%E5%B8%B8%E8%A7%81%E7%9A%84%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%8F%A3/</url>
+    <content><![CDATA[<h1 id="FTP"><a href="#FTP" class="headerlink" title="FTP"></a>FTP</h1><p>被动端口20/主动端口21 (文件传输协议)</p>
+<h1 id="DNS"><a href="#DNS" class="headerlink" title="DNS"></a>DNS</h1><p>端口53 (域名系统协议)</p>
+<h1 id="DHCP"><a href="#DHCP" class="headerlink" title="DHCP"></a>DHCP</h1><p>端口68 (动态主机配置协议)</p>
+<h1 id="SSH"><a href="#SSH" class="headerlink" title="SSH"></a>SSH</h1><p>端口22 (安全外壳协议)</p>
+<a id="more"></a>
+<h1 id="Telnet"><a href="#Telnet" class="headerlink" title="Telnet"></a>Telnet</h1><p>端口23 </p>
+<h1 id="SMTP"><a href="#SMTP" class="headerlink" title="SMTP"></a>SMTP</h1><p>25 (简单邮件传输协议)</p>
+<h1 id="Redis"><a href="#Redis" class="headerlink" title="Redis"></a>Redis</h1><p>端口6379</p>
+<h1 id="Mysql"><a href="#Mysql" class="headerlink" title="Mysql"></a>Mysql</h1><p>端口3306</p>
+<h1 id="Nginx"><a href="#Nginx" class="headerlink" title="Nginx"></a>Nginx</h1><p>端口80</p>
+<h1 id="Apache"><a href="#Apache" class="headerlink" title="Apache"></a>Apache</h1><p>端口80</p>
+<h1 id="HTTPS"><a href="#HTTPS" class="headerlink" title="HTTPS"></a>HTTPS</h1><p>端口443</p>
+<h1 id="NTP"><a href="#NTP" class="headerlink" title="NTP"></a>NTP</h1><p>端口123 (网络时间协议)</p>
+<h1 id="Tomcat"><a href="#Tomcat" class="headerlink" title="Tomcat"></a>Tomcat</h1><p>端口 8080</p>
+]]></content>
+      <tags>
+        <tag>技术</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>LVS原理</title>
+    <url>/2020/03/25/LVS%E5%8E%9F%E7%90%86/</url>
+    <content><![CDATA[<h1 id="LVS简介"><a href="#LVS简介" class="headerlink" title="LVS简介"></a>LVS简介</h1><pre><code>   LVS（Linux Virtual Server）即Linux虚拟服务器，是由章文嵩博士主导的开源负载均衡项目，目前LVS已经被集成到Linux内核模块中。该项目在Linux内核中实现了基于IP的数据请求负载均衡调度方案，其体系结构如图1所示，终端互联网用户从外部访问公司的外部负载均衡服务器，终端用户的Web请求会发送给LVS调度器，调度器根据自己预设的算法决定将该请求发送给后端的某台Web服务器，比如，轮询算法可以将外部的请求平均分发给后端的所有服务器，终端用户访问LVS调度器虽然会被转发到后端真实的服务器，但如果真实服务器连接的是相同的存储，提供的服务也是相同的服务，最终用户不管是访问哪台真实服务器，得到的服务内容都是一样的，整个集群对用户而言都是透明的。最后根据LVS工作模式的不同，真实服务器会选择不同的方式将用户需要的数据发送到终端用户，LVS工作模式分为NAT模式、TUN模式、以及DR模式。</code></pre>
+<a id="more"></a>
+
+
+<h1 id="三种工作模式的解析。"><a href="#三种工作模式的解析。" class="headerlink" title="三种工作模式的解析。"></a>三种工作模式的解析。</h1><h2 id="基于NAT的LVS模式负载均衡"><a href="#基于NAT的LVS模式负载均衡" class="headerlink" title="基于NAT的LVS模式负载均衡"></a>基于NAT的LVS模式负载均衡</h2><pre><code>  NAT（Network Address Translation）即网络地址转换，其作用是通过数据报头的修改，使得位于企业内部的私有IP地址可以访问外网，以及外部用用户可以访问位于公司内部的私有IP主机。VS/NAT工作模式拓扑结构如图2所示，LVS负载调度器可以使用两块网卡配置不同的IP地址，eth0设置为私钥IP与内部网络通过交换设备相互连接，eth1设备为外网IP与外部网络联通。
+
+   第一步，用户通过互联网DNS服务器解析到公司负载均衡设备上面的外网地址，相对于真实服务器而言，LVS外网IP又称VIP（Virtual IP Address），用户通过访问VIP，即可连接后端的真实服务器（Real Server），而这一切对用户而言都是透明的，用户以为自己访问的就是真实服务器，但他并不知道自己访问的VIP仅仅是一个调度器，也不清楚后端的真实服务器到底在哪里、有多少真实服务器。</code></pre>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">第二步，用户将请求发送至124.126.147.168，此时LVS将根据预设的算法选择后端的一台真实服务器（192.168.0.1~192.168.0.3），将数据请求包转发给真实服务器，并且在转发之前LVS会修改数据包中的目标地址以及目标端口，目标地址与目标端口将被修改为选出的真实服务器IP地址以及相应的端口。</span><br></pre></td></tr></table></figure>
+
+<pre><code>第三步，真实的服务器将响应数据包返回给LVS调度器，调度器在得到响应的数据包后会将源地址和源端口修改为VIP及调度器相应的端口，修改完成后，由调度器将响应数据包发送回终端用户，另外，由于LVS调度器有一个连接Hash表，该表中会记录连接请求及转发信息，当同一个连接的下一个数据包发送给调度器时，从该Hash表中可以直接找到之前的连接记录，并根据记录信息选出相同的真实服务器及端口信息。</code></pre>
+<h2 id="基于TUN的LVS负载均衡"><a href="#基于TUN的LVS负载均衡" class="headerlink" title="基于TUN的LVS负载均衡"></a>基于TUN的LVS负载均衡</h2><pre><code>   在LVS（NAT）模式的集群环境中，由于所有的数据请求及响应的数据包都需要经过LVS调度器转发，如果后端服务器的数量大于10台，则调度器就会成为整个集群环境的瓶颈。我们知道，数据请求包往往远小于响应数据包的大小。因为响应数据包中包含有客户需要的具体数据，所以LVS（TUN）的思路就是将请求与响应数据分离，让调度器仅处理数据请求，而让真实服务器响应数据包直接返回给客户端。VS/TUN工作模式拓扑结构如图3所示。其中，IP隧道（IP tunning）是一种数据包封装技术，它可以将原始数据包封装并添加新的包头（内容包括新的源地址及端口、目标地址及端口），从而实现将一个目标为调度器的VIP地址的数据包封装，通过隧道转发给后端的真实服务器（Real Server），通过将客户端发往调度器的原始数据包封装，并在其基础上添加新的数据包头（修改目标地址为调度器选择出来的真实服务器的IP地址及对应端口），LVS（TUN）模式要求真实服务器可以直接与外部网络连接，真实服务器在收到请求数据包后直接给客户端主机响应数据。</code></pre>
+<h2 id="基于DR的LVS负载均衡"><a href="#基于DR的LVS负载均衡" class="headerlink" title="基于DR的LVS负载均衡"></a>基于DR的LVS负载均衡</h2><p>在LVS（TUN）模式下，由于需要在LVS调度器与真实服务器之间创建隧道连接，这同样会增加服务器的负担。与LVS（TUN）类似，DR模式也叫直接路由模式，其体系结构如图4所示，该模式中LVS依然仅承担数据的入站请求以及根据算法选出合理的真实服务器，最终由后端真实服务器负责将响应数据包发送返回给客户端。与隧道模式不同的是，直接路由模式（DR模式）要求调度器与后端服务器必须在同一个局域网内，VIP地址需要在调度器与后端所有的服务器间共享，因为最终的真实服务器给客户端回应数据包时需要设置源IP为VIP地址，目标IP为客户端IP，这样客户端访问的是调度器的VIP地址，回应的源地址也依然是该VIP地址（真实服务器上的VIP），客户端是感觉不到后端服务器存在的。由于多台计算机都设置了同样一个VIP地址，所以在直接路由模式中要求调度器的VIP地址是对外可见的，客户端需要将请求数据包发送到调度器主机，而所有的真实服务器的VIP地址必须配置在Non-ARP的网络设备上，也就是该网络设备并不会向外广播自己的MAC及对应的IP地址，真实服务器的VIP对外界是不可见的，但真实服务器却可以接受目标地址VIP的网络请求，并在回应数据包时将源地址设置为该VIP地址。调度器根据算法在选出真实服务器后，在不修改数据报文的情况下，将数据帧的MAC地址修改为选出的真实服务器的MAC地址，通过交换机将该数据帧发给真实服务器。整个过程中，真实服务器的VIP不需要对外界可见。</p>
+<h1 id="LVS负载均衡调度算法"><a href="#LVS负载均衡调度算法" class="headerlink" title="LVS负载均衡调度算法"></a>LVS负载均衡调度算法</h1><pre><code>  根据前面的介绍，我们了解了LVS的三种工作模式，但不管实际环境中采用的是哪种模式，调度算法进行调度的策略与算法都是LVS的核心技术，LVS在内核中主要实现了一下十种调度算法。</code></pre>
+<h2 id="轮询调度"><a href="#轮询调度" class="headerlink" title="轮询调度"></a>轮询调度</h2><p>轮询调度（Round Robin 简称’RR’）算法就是按依次循环的方式将请求调度到不同的服务器上，该算法最大的特点就是实现简单。轮询算法假设所有的服务器处理请求的能力都一样的，调度器会将所有的请求平均分配给每个真实服务器。</p>
+<h2 id="加权轮询调度"><a href="#加权轮询调度" class="headerlink" title="加权轮询调度"></a>加权轮询调度</h2><p>加权轮询（Weight Round Robin 简称’WRR’）算法主要是对轮询算法的一种优化与补充，LVS会考虑每台服务器的性能，并给每台服务器添加一个权值，如果服务器A的权值为1，服务器B的权值为2，则调度器调度到服务器B的请求会是服务器A的两倍。权值越高的服务器，处理的请求越多。</p>
+<h2 id="最小连接调度"><a href="#最小连接调度" class="headerlink" title="最小连接调度"></a>最小连接调度</h2><p>最小连接调度（Least Connections 简称’LC’）算法是把新的连接请求分配到当前连接数最小的服务器。最小连接调度是一种动态的调度算法，它通过服务器当前活跃的连接数来估计服务器的情况。调度器需要记录各个服务器已建立连接的数目，当一个请求被调度到某台服务器，其连接数加1；当连接中断或者超时，其连接数减1。</p>
+<p>（集群系统的真实服务器具有相近的系统性能，采用最小连接调度算法可以比较好地均衡负载。)</p>
+<h2 id="加权最小连接调度"><a href="#加权最小连接调度" class="headerlink" title="加权最小连接调度"></a>加权最小连接调度</h2><p>加权最少连接（Weight Least Connections 简称’WLC’）算法是最小连接调度的超集，各个服务器相应的权值表示其处理性能。服务器的缺省权值为1，系统管理员可以动态地设置服务器的权值。加权最小连接调度在调度新连接时尽可能使服务器的已建立连接数和其权值成比例。调度器可以自动问询真实服务器的负载情况，并动态地调整其权值。</p>
+<h2 id="基于局部的最少连接"><a href="#基于局部的最少连接" class="headerlink" title="基于局部的最少连接"></a>基于局部的最少连接</h2><p>基于局部的最少连接调度（Locality-Based Least Connections 简称’LBLC’）算法是针对请求报文的目标IP地址的 负载均衡调度，目前主要用于Cache集群系统，因为在Cache集群客户请求报文的目标IP地址是变化的。这里假设任何后端服务器都可以处理任一请求，算法的设计目标是在服务器的负载基本平衡情况下，将相同目标IP地址的请求调度到同一台服务器，来提高各台服务器的访问局部性和Cache命中率，从而提升整个集群系统的处理能力。LBLC调度算法先根据请求的目标IP地址找出该目标IP地址最近使用的服务器，若该服务器是可用的且没有超载，将请求发送到该服务器；若服务器不存在，或者该服务器超载且有服务器处于一半的工作负载，则使用’最少连接’的原则选出一个可用的服务器，将请求发送到服务器。</p>
+<h2 id="带复制的基于局部性的最少连接"><a href="#带复制的基于局部性的最少连接" class="headerlink" title="带复制的基于局部性的最少连接"></a>带复制的基于局部性的最少连接</h2><p>带复制的基于局部性的最少连接（Locality-Based Least Connections with Replication  简称’LBLCR’）算法也是针对目标IP地址的负载均衡，目前主要用于Cache集群系统，它与LBLC算法不同之处是它要维护从一个目标IP地址到一组服务器的映射，而LBLC算法维护从一个目标IP地址到一台服务器的映射。按’最小连接’原则从该服务器组中选出一一台服务器，若服务器没有超载，将请求发送到该服务器；若服务器超载，则按’最小连接’原则从整个集群中选出一台服务器，将该服务器加入到这个服务器组中，将请求发送到该服务器。同时，当该服务器组有一段时间没有被修改，将最忙的服务器从服务器组中删除，以降低复制的程度。</p>
+<h2 id="目标地址散列调度"><a href="#目标地址散列调度" class="headerlink" title="目标地址散列调度"></a>目标地址散列调度</h2><p>目标地址散列调度（Destination Hashing 简称’DH’）算法先根据请求的目标IP地址，作为散列键（Hash Key）从静态分配的散列表找出对应的服务器，若该服务器是可用的且并未超载，将请求发送到该服务器，否则返回空。</p>
+<h2 id="源地址散列调度U"><a href="#源地址散列调度U" class="headerlink" title="源地址散列调度U"></a>源地址散列调度U</h2><p>源地址散列调度（Source Hashing  简称’SH’）算法先根据请求的源IP地址，作为散列键（Hash Key）从静态分配的散列表找出对应的服务器，若该服务器是可用的且并未超载，将请求发送到该服务器，否则返回空。它采用的散列函数与目标地址散列调度算法的相同，它的算法流程与目标地址散列调度算法的基本相似。</p>
+<h2 id="最短的期望的延迟"><a href="#最短的期望的延迟" class="headerlink" title="最短的期望的延迟"></a>最短的期望的延迟</h2><p>最短的期望的延迟调度（Shortest Expected Delay 简称’SED’）算法基于WLC算法。举个例子吧，ABC三台服务器的权重分别为1、2、3 。那么如果使用WLC算法的话一个新请求进入时它可能会分给ABC中的任意一个。使用SED算法后会进行一个运算</p>
+<p>A：（1+1）/1=2   B：（1+2）/2=3/2   C：（1+3）/3=4/3   就把请求交给得出运算结果最小的服务器。</p>
+<h2 id="最少队列调度"><a href="#最少队列调度" class="headerlink" title="最少队列调度"></a>最少队列调度</h2><p>最少队列调度（Never Queue 简称’NQ’）算法，无需队列。如果有realserver的连接数等于0就直接分配过去，不需要在进行SED运算。</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>技术</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Linux 系统启动过程</title>
+    <url>/2020/03/25/Linux-%E5%BC%80%E6%9C%BA%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B/</url>
+    <content><![CDATA[<p>linux启动时我们会看到许多启动信息。</p>
+<p>Linux系统的启动过程并不是大家想象中的那么复杂，其过程可以分为5个阶段：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">1.内核的引导</span><br><span class="line">2.运行 init</span><br><span class="line">3.系统初始化</span><br><span class="line">4.建立终端 </span><br><span class="line">5.用户登录系统</span><br><span class="line"></span><br><span class="line">init程序的类型：</span><br><span class="line">SysV: init, CentOS 5之前, 配置文件： /etc/inittab。</span><br><span class="line">Upstart: init,CentOS 6, 配置文件： /etc/inittab, /etc/init/*.conf。</span><br><span class="line">Systemd： systemd, CentOS 7,配置文件： /usr/lib/systemd/system、 /etc/systemd/system。</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h1 id="内核引导"><a href="#内核引导" class="headerlink" title="内核引导"></a>内核引导</h1><p>当计算机打开电源后，首先是BIOS开机自检，按照BIOS中设置的启动设备（通常是硬盘）来启动。</p>
+<p>操作系统接管硬件以后，首先读入 /boot 目录下的内核文件</p>
+<h1 id="运行init"><a href="#运行init" class="headerlink" title="运行init"></a>运行init</h1><p>init 进程是系统所有进程的起点，你可以把它比拟成系统所有进程的老祖宗，没有这个进程，系统中任何进程都不会启动。</p>
+<p>init 程序首先是需要读取配置文件 /etc/inittab</p>
+<h2 id="运行级别"><a href="#运行级别" class="headerlink" title="运行级别"></a>运行级别</h2><p>许多程序需要开机启动。它们在Windows叫做”服务”（service），在Linux就叫做”守护进程”（daemon）。</p>
+<p>init进程的一大任务，就是去运行这些开机启动的程序。</p>
+<p>但是，不同的场合需要启动不同的程序，比如用作服务器时，需要启动Apache，用作桌面就不需要。</p>
+<p>Linux允许为不同的场合，分配不同的开机启动程序，这就叫做”运行级别”（runlevel）。也就是说，启动时根据”运行级别”，确定要运行哪些程序。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Linux系统有7个运行级别(runlevel)：</span><br><span class="line">运行级别0：系统停机状态，系统默认运行级别不能设为0，否则不能正常启动</span><br><span class="line">运行级别1：单用户工作状态，root权限，用于系统维护，禁止远程登陆</span><br><span class="line">运行级别2：多用户状态(没有NFS)</span><br><span class="line">运行级别3：完全的多用户状态(有NFS)，登陆后进入控制台命令行模式</span><br><span class="line">运行级别4：系统未使用，保留</span><br><span class="line">运行级别5：X11控制台，登陆后进入图形GUI模式</span><br><span class="line">运行级别6：系统正常关闭并重启，默认运行级别不能设为6，否则不能正常启动</span><br></pre></td></tr></table></figure>
+<h1 id="系统初始化"><a href="#系统初始化" class="headerlink" title="系统初始化"></a>系统初始化</h1><p>在init的配置文件中有这么一行： si::sysinit:/etc/rc.d/rc.sysinit　它调用执行了/etc/rc.d/rc.sysinit，而rc.sysinit是一个bash shell的脚本，它主要是完成一些系统初始化的工作，rc.sysinit是每一个运行级别都要首先运行的重要脚本。</p>
+<p>它主要完成的工作有：激活交换分区，检查磁盘，加载硬件模块以及其它一些需要优先执行任务。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">l5:5:<span class="built_in">wait</span>:/etc/rc.d/rc 5</span><br></pre></td></tr></table></figure>
+<p>这一行表示以5为参数运行/etc/rc.d/rc，/etc/rc.d/rc是一个Shell脚本，它接受5作为参数，去执行/etc/rc.d/rc5.d/目录下的所有的rc启动脚本，/etc/rc.d/rc5.d/目录中的这些启动脚本实际上都是一些连接文件，而不是真正的rc启动脚本，真正的rc启动脚本实际上都是放在/etc/rc.d/init.d/目录下。</p>
+<p>而这些rc启动脚本有着类似的用法，它们一般能接受start、stop、restart、status等参数。</p>
+<p>/etc/rc.d/rc5.d/中的rc启动脚本通常是K或S开头的连接文件，对于以 S 开头的启动脚本，将以start参数来运行。</p>
+<p>而如果发现存在相应的脚本也存在K打头的连接，而且已经处于运行态了(以/var/lock/subsys/下的文件作为标志)，则将首先以stop为参数停止这些已经启动了的守护进程，然后再重新运行。</p>
+<p>这样做是为了保证是当init改变运行级别时，所有相关的守护进程都将重启。</p>
+<p>至于在每个运行级中将运行哪些守护进程，用户可以通过chkconfig或setup中的”System Services”来自行设定。</p>
+<h1 id="建立终端"><a href="#建立终端" class="headerlink" title="建立终端"></a>建立终端</h1><p>rc执行完毕后，返回init。这时基本系统环境已经设置好了，各种守护进程也已经启动了。</p>
+<p>init接下来会打开6个终端，以便用户登录系统。在inittab中的以下6行就是定义了6个终端：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">1:2345:respawn:/sbin/mingetty tty1</span><br><span class="line">2:2345:respawn:/sbin/mingetty tty2</span><br><span class="line">3:2345:respawn:/sbin/mingetty tty3</span><br><span class="line">4:2345:respawn:/sbin/mingetty tty4</span><br><span class="line">5:2345:respawn:/sbin/mingetty tty5</span><br><span class="line">6:2345:respawn:/sbin/mingetty tty6</span><br></pre></td></tr></table></figure>
+<p>从上面可以看出在2、3、4、5的运行级别中都将以respawn方式运行mingetty程序，mingetty程序能打开终端、设置模式。</p>
+<p>同时它会显示一个文本登录界面，这个界面就是我们经常看到的登录界面，在这个登录界面中会提示用户输入用户名，而用户输入的用户将作为参数传给login程序来验证用户的身份。</p>
+<h1 id="用户登录"><a href="#用户登录" class="headerlink" title="用户登录"></a>用户登录</h1><p>一般来说，用户的登录方式有三种：</p>
+<p>（1）命令行登录<br>（2）ssh登录<br>（3）图形界面登录</p>
+<p>对于运行级别为5的图形方式用户来说，他们的登录是通过一个图形化的登录界面。登录成功后可以直接进入 KDE、Gnome 等窗口管理器。</p>
+<p>而本文主要讲的还是文本方式登录的情况：当我们看到mingetty的登录界面时，我们就可以输入用户名和密码来登录系统了。</p>
+<p>Linux 的账号验证程序是 login，login 会接收 mingetty 传来的用户名作为用户名参数。</p>
+<p>然后 login 会对用户名进行分析：如果用户名不是 root，且存在 /etc/nologin 文件，login 将输出 nologin 文件的内容，然后退出。</p>
+<p>这通常用来系统维护时防止非root用户登录。只有/etc/securetty中登记了的终端才允许 root 用户登录，如果不存在这个文件，则 root 用户可以在任何终端上登录。</p>
+<p>/etc/usertty文件用于对用户作出附加访问限制，如果不存在这个文件，则没有其他限制。</p>
+]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>Linux技术</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Linux下普通用户使用docker</title>
+    <url>/2020/04/22/Linux%E4%B8%8B%E6%99%AE%E9%80%9A%E7%94%A8%E6%88%B7%E4%BD%BF%E7%94%A8docker/</url>
+    <content><![CDATA[<h2 id="创建docker组"><a href="#创建docker组" class="headerlink" title="创建docker组"></a>创建docker组</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">groupadd docker</span><br></pre></td></tr></table></figure>
+
+<h2 id="将当前用户加入docker用户组"><a href="#将当前用户加入docker用户组" class="headerlink" title="将当前用户加入docker用户组"></a>将当前用户加入docker用户组</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">gpasswd -a <span class="variable">$&#123;USER&#125;</span> docker</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h2 id="重新启动docker服务（下面是CentOS7的命令）"><a href="#重新启动docker服务（下面是CentOS7的命令）" class="headerlink" title="重新启动docker服务（下面是CentOS7的命令）"></a>重新启动docker服务（下面是CentOS7的命令）</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo systemctl restart docker</span><br></pre></td></tr></table></figure>
+
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">root@iZbp12adskpuoxodbkqzjfZ:$ docker version</span><br><span class="line">Client:</span><br><span class="line"> Version:      17.03.0-ce</span><br><span class="line"> API version:  1.26</span><br><span class="line"> Go version:   go1.7.5</span><br><span class="line"> Git commit:   3a232c8</span><br><span class="line"> Built:        Tue Feb 28 07:52:04 2017</span><br><span class="line"> OS/Arch:      linux/amd64</span><br><span class="line"></span><br><span class="line">Server:</span><br><span class="line"> Version:      17.03.0-ce</span><br><span class="line"> API version:  1.26 (minimum version 1.12)</span><br><span class="line"> Go version:   go1.7.5</span><br><span class="line"> Git commit:   3a232c8</span><br><span class="line"> Built:        Tue Feb 28 07:52:04 2017</span><br><span class="line"> OS/Arch:      linux/amd64</span><br><span class="line"> Experimental: <span class="literal">false</span></span><br></pre></td></tr></table></figure>]]></content>
+      <tags>
+        <tag>Linux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Linux ls命令</title>
+    <url>/2020/03/25/Linux%E5%9F%BA%E7%A1%80%E5%91%BD%E4%BB%A4/</url>
+    <content><![CDATA[<h1 id="1-ls列出文件"><a href="#1-ls列出文件" class="headerlink" title="1.ls列出文件"></a>1.ls列出文件</h1><p>Linux ls命令用于显示指定工作目录下之内容（列出目前工作目录所含之文件及子目录)。<br>ls = list(列表)</p>
+<h1 id="2-语法"><a href="#2-语法" class="headerlink" title="2.语法"></a>2.语法</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ls [-alrtAFR] [path_name...]</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h1 id="3-参数"><a href="#3-参数" class="headerlink" title="3.参数"></a>3.参数</h1><p>-a 显示所有文件及目录 (ls内定将文件名或目录名称开头为”.”的视为隐藏档，不会列出)包括”.”和”..”<br>-l 除文件名称外，亦将文件型态、权限、拥有者、文件大小等资讯详细列出<br>-r 将文件以相反次序显示(原定依英文字母次序)<br>-t 将文件依建立时间之先后次序列出<br>-A 同 -a ，但不列出 “.” (目前目录) 及 “..” (父目录)<br>-F 在列出的文件名称后加一符号；例如可执行档则加 “*”, 目录则加 “/“<br>-R 递归的呈现出当前目录下的所有文件</p>
+<h1 id="4-示范"><a href="#4-示范" class="headerlink" title="4.示范"></a>4.示范</h1><h3 id="4-1列出根目录-下的所有目录"><a href="#4-1列出根目录-下的所有目录" class="headerlink" title="4.1列出根目录(/)下的所有目录"></a>4.1列出根目录(/)下的所有目录</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[root@localhost ~]<span class="comment"># ls /</span></span><br><span class="line">bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var</span><br></pre></td></tr></table></figure>
+<h3 id="4-2列出目前工作目录下所有名称是-s-开头的文件，越新的排越后面"><a href="#4-2列出目前工作目录下所有名称是-s-开头的文件，越新的排越后面" class="headerlink" title="4.2列出目前工作目录下所有名称是 s 开头的文件，越新的排越后面"></a>4.2列出目前工作目录下所有名称是 s 开头的文件，越新的排越后面</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ls -ltr s*</span><br></pre></td></tr></table></figure>
+<h3 id="4-3将-bin-目录以下所有目录及文件详细资料列出"><a href="#4-3将-bin-目录以下所有目录及文件详细资料列出" class="headerlink" title="4.3将 /bin 目录以下所有目录及文件详细资料列出"></a>4.3将 /bin 目录以下所有目录及文件详细资料列出</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ls -lR /bin</span><br></pre></td></tr></table></figure>
+<h3 id="4-4列出目前工作目录下所有文件及目录；目录于名称后加-“-“-可执行档于名称后加-“-”"><a href="#4-4列出目前工作目录下所有文件及目录；目录于名称后加-“-“-可执行档于名称后加-“-”" class="headerlink" title="4.4列出目前工作目录下所有文件及目录；目录于名称后加 “/“, 可执行档于名称后加 “*” :"></a>4.4列出目前工作目录下所有文件及目录；目录于名称后加 “/“, 可执行档于名称后加 “*” :</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ls -AF</span><br></pre></td></tr></table></figure>
+<h3 id="4-5列出当前目录下所有的文件及目录的详细信息"><a href="#4-5列出当前目录下所有的文件及目录的详细信息" class="headerlink" title="4.5列出当前目录下所有的文件及目录的详细信息"></a>4.5列出当前目录下所有的文件及目录的详细信息</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ls -l</span><br><span class="line">(ls -l = ll)</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>LINUX</category>
+      </categories>
+      <tags>
+        <tag>Linux命令</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Mysql主从复制原理</title>
+    <url>/2020/01/14/Mysql%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%E5%8E%9F%E7%90%86/</url>
+    <content><![CDATA[<h1 id="1、MySQL的主从复制原理"><a href="#1、MySQL的主从复制原理" class="headerlink" title="1、MySQL的主从复制原理"></a>1、MySQL的主从复制原理</h1><p><img src="https://youlegu.oss-cn-beijing.aliyuncs.com/355/mysql.jpg"><br>1.1、Master主库在事务提交时，会把数据变更作为时间Events记录在二进制日志文件Binlog中。<br>1.2、主库推送二进制日志文件Binlog中的日志事件到从库的中级日志Relay Log。</p>
+<a id="more"></a>
+<p>1.3、Slave重做中继日志中的事件，将改变反映它自己的数据。</p>
+<h1 id="2、复制优势"><a href="#2、复制优势" class="headerlink" title="2、复制优势"></a>2、复制优势</h1><p>2.1、主库出现问题，可以快速切换到从库提供服务。<br>2.2、可以在从库上执行查询操作，从主库中更新，实现读写分离，降低主库的访问压力。<br>2.3、可以在从库中执行备份，以避免备份期间影响主库的服务。</p>
+]]></content>
+      <tags>
+        <tag>Mysql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Nginx开启目录下载</title>
+    <url>/2020/04/13/Nginx%E5%BC%80%E5%90%AF%E7%9B%AE%E5%BD%95%E4%B8%8B%E8%BD%BD/</url>
+    <content><![CDATA[<p>HTTP目录清单生成模块（HTTP Auto Index）  </p>
+<h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>这个模块提供自动目录列表。<br>连接请求仅在ngx_http_index_module中没有找到主页文件时才会请求这个模块。 </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">location / &#123;  </span><br><span class="line">          autoindex on; <span class="comment">#开启目录浏览下载功能</span></span><br><span class="line">                      &#125;</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>二级目录时也可以使用此功能 </p>
+<pre><code>                   localtion /download/&#123;
+
+                       autoindex on; #开启目录浏览下载功能
+
+                       autoindex_exact_size off;#指定文件大小显示为M默认是b
+
+                       autoindex_localtime on;  #开启以服务器本地时区显示文件修改日期  默认为 off，以 GMT 时间作为显示的文件时间；  
+
+                       alias /home/test/;
+
+                    &#125;</code></pre>
+<p>配置完成后，保存，重启nginx通过浏览器访问该路径时,会有如下效果。</p>
+<h2 id="指令"><a href="#指令" class="headerlink" title="指令"></a>指令</h2><p>autoindex<br>语法：autoindex [ on|off ]<br>默认值：autoindex off<br>使用字段：http, server, location<br>是否使用自动目录列表。</p>
+<p>autoindex_exact_size<br>语法：autoindex_exact_size [ on|off ]<br>默认值：autoindex_exact_size on<br>使用字段：http, server, location<br>指定生成的自动目录文件大小，可以是精确到bytes或者使用KB, MB或GB。</p>
+<p>autoindex_localtime<br>语法：autoindex_localtime [ on|off ]<br>默认值：autoindex_localtime off<br>使用字段：http, server, location<br>是否在目录列表文件中显示本地时间（GMT时间），默认为关。</p>
+]]></content>
+      <tags>
+        <tag>技术</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Python进程的坑</title>
+    <url>/2020/08/25/Python%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%9D%91/</url>
+    <content><![CDATA[<p>用multiprocessing模块Process</p>
+<p>启动一个进程用start()方法,如果没有之后没有用join的话该进程不会自动关闭会产生僵尸程序</p>
+<a id="more"></a>]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+      <tags>
+        <tag>python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Python递归最大层数</title>
+    <url>/2020/08/28/Python%E9%80%92%E5%BD%92%E6%9C%80%E5%A4%A7%E5%B1%82%E6%95%B0/</url>
+    <content><![CDATA[<h2 id="使用sys-getrecursionlimit模块来获取递归层数"><a href="#使用sys-getrecursionlimit模块来获取递归层数" class="headerlink" title="使用sys.getrecursionlimit模块来获取递归层数"></a>使用sys.getrecursionlimit模块来获取递归层数</h2><p>from sys import getrecursionlimit # 1000</p>
+<h2 id="设置递归层数使用sys-setrecursionlimit"><a href="#设置递归层数使用sys-setrecursionlimit" class="headerlink" title="设置递归层数使用sys.setrecursionlimit"></a>设置递归层数使用sys.setrecursionlimit</h2><p>from sys import setrecursionlimit<br>setrecursionlimit(1000)</p>
+<a id="more"></a>]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+      <tags>
+        <tag>python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Redis和Memcache的区别</title>
+    <url>/2020/03/25/Redis%E5%92%8CMemcache%E7%9A%84%E5%8C%BA%E5%88%AB/</url>
+    <content><![CDATA[<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><p>redis只需要安装服务端<br>memcache需要安装服务端跟客户端</p>
+<h1 id="集群"><a href="#集群" class="headerlink" title="集群"></a>集群</h1><p>redis 和memcached都支持集群</p>
+<a id="more"></a>
+<h1 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h1><p>Redis支持的数据类型要丰富得多,Redis不仅仅支持简单的k/v类型的数据，同时还提供String，List,Set,Hash,Sorted Set,pub/sub,Transactions数据结构的存储。其中Set是HashMap实现的，value永远为null而已<br>memcache支持简单数据类型，需要客户端自己处理复杂对象 </p>
+<h1 id="持久性"><a href="#持久性" class="headerlink" title="持久性"></a>持久性</h1><p>redis支持数据落地持久化存储,可以将内存中的数据保持在磁盘中，重启的时候可以再次加载进行使用。<br>memcache不支持数据持久存储 </p>
+<h1 id="分布式存储"><a href="#分布式存储" class="headerlink" title="分布式存储"></a>分布式存储</h1><p>redis支持master-slave复制模式<br>memcache可以使用一致性hash做分布式</p>
+<h1 id="value大小不同"><a href="#value大小不同" class="headerlink" title="value大小不同"></a>value大小不同</h1><p>memcache是一个内存缓存，key的长度小于250字符，单个item存储要小于1M，不适合虚拟机使用</p>
+<h1 id="数据一致性不同"><a href="#数据一致性不同" class="headerlink" title="数据一致性不同"></a>数据一致性不同</h1><p>Redis只使用单核，而Memcached可以使用多核，所以平均每一个核上Redis在存储小数据时比Memcached性能更高。而在100k以上的数据中，Memcached性能要高于Redis，虽然Redis最近也在存储大数据的性能上进行优化，但是比起Memcached，还是稍有逊色。<br>redis使用的是单线程模型，保证了数据按顺序提交。<br>memcache需要使用cas保证数据一致性。CAS（Check and Set）是一个确保并发一致性的机制，属于“乐观锁”范畴；原理很简单：拿版本号，操作，对比版本号，如果一致就操作，不一致就放弃任何操作<br>cpu利用<br>redis单线程模型只能使用一个cpu，可以开启多个redis进程</p>
+<p>（1）什么是redis?<br>Redis 是一个基于内存的高性能key-value数据库。 ,Redis本质上是一个Key-Value类型的内存数据库，很像memcached，整个数据库统统加载在内存当中进行操作，定期通过异步操作把数据库数据flush到硬盘上进行保存。因为是纯内存操作，Redis的性能非常出色，每秒可以处理超过 10万次读写操作，是已知性能最快的Key-Value DB。<br>Redis的出色之处不仅仅是性能，Redis最大的魅力是支持保存多种数据结构，此外单个value的最大限制是1GB，不像 memcached只能保存1MB的数据，因此Redis可以用来实现很多有用的功能，比方说用他的List来做FIFO双向链表，实现一个轻量级的高性 能消息队列服务，用他的Set可以做高性能的tag系统等等。另外Redis也可以对存入的Key-Value设置expire时间，因此也可以被当作一 个功能加强版的memcached来用。<br>Redis的主要缺点是数据库容量受到物理内存的限制，不能用作海量数据的高性能读写，因此Redis适合的场景主要局限在较小数据量的高性能操作和运算上。</p>
+<p>（3）Redis支持的数据类型<br>Redis通过Key-Value的单值不同类型来区分, 以下是支持的类型:<br>Strings<br>Lists<br>Sets 求交集、并集(通过HashMap实现，是个Value永远为空的HashMap)<br>Sorted Set (使用了HashMap 和SkipList,利用HashMap中的score进行排序)<br>hashes</p>
+<p>（4）为什么redis需要把所有数据放到内存中？<br>Redis为了达到最快的读写速度将数据都读到内存中，并通过异步的方式将数据写入磁盘。所以redis具有快速和数据持久化的特征。如果不将数据放在内存中，磁盘I/O速度为严重影响redis的性能。在内存越来越便宜的今天，redis将会越来越受欢迎。<br>如果设置了最大使用的内存，则数据已有记录数达到内存限值后不能继续插入新值。</p>
+<p>（5）Redis是单进程单线程的<br>redis利用队列技术将并发访问变为串行访问，消除了传统数据库串行控制的开销</p>
+<p>（6）虚拟内存<br>当你的key很小而value很大时,使用VM的效果会比较好.因为这样节约的内存比较大.<br>当你的key不小时,可以考虑使用一些非常方法将很大的key变成很大的value,比如你可以考虑将key,value组合成一个新的value.<br>vm-max-threads这个参数,可以设置访问swap文件的线程数,设置最好不要超过机器的核数,如果设置为0,那么所有对swap文件的操作都是串行的.可能会造成比较长时间的延迟,但是对数据完整性有很好的保证.</p>
+<p>自己测试的时候发现用虚拟内存性能也不错。如果数据量很大，可以考虑分布式或者其他数据库 </p>
+<p>（7）分布式<br>redis支持主从的模式。原则：Master会将数据同步到slave，而slave不会将数据同步到master。Slave启动时会连接master来同步数据。</p>
+<p>这是一个典型的分布式读写分离模型。我们可以利用master来插入数据，slave提供检索服务。这样可以有效减少单个机器的并发访问数量</p>
+<p>（8）读写分离模型<br>通过增加Slave DB的数量，读的性能可以线性增长。为了避免Master DB的单点故障，集群一般都会采用两台Master DB做双机热备，所以整个集群的读和写的可用性都非常高。<br>读写分离架构的缺陷在于，不管是Master还是Slave，每个节点都必须保存完整的数据，如果在数据量很大的情况下，集群的扩展能力还是受限于单个节点的存储能力，而且对于Write-intensive类型的应用，读写分离架构并不适合。                                                                 </p>
+<p>（9）数据分片模型<br>为了解决读写分离模型的缺陷，可以将数据分片模型应用进来。</p>
+<p>可以将每个节点看成都是独立的master，然后通过业务实现数据分片。</p>
+<p>结合上面两种模型，可以将每个master设计成由一个master和多个slave组成的模型。</p>
+<p> （10）Redis的回收策略</p>
+<p> volatile-lru：从已设置过期时间的数据集（server.db[i].expires）中挑选最近最少使用的数据淘汰</p>
+<p>volatile-ttl：从已设置过期时间的数据集（server.db[i].expires）中挑选将要过期的数据淘汰</p>
+<p>volatile-random：从已设置过期时间的数据集（server.db[i].expires）中任意选择数据淘汰</p>
+<p>allkeys-lru：从数据集（server.db[i].dict）中挑选最近最少使用的数据淘汰</p>
+<p>allkeys-random：从数据集（server.db[i].dict）中任意选择数据淘汰</p>
+<p>no-enviction（驱逐）：禁止驱逐数据   </p>
+<p>(11) redis 最适合的场景</p>
+<p>Redis最适合所有数据in-momory的场景，虽然Redis也提供持久化功能，但实际更多的是一个disk-backed的功能，跟传统意义上的持久化有比较大的差别，那么可能大家就会有疑问，似乎Redis更像一个加强版的Memcached，那么何时使用Memcached,何时使用Redis呢?</p>
+<pre><code>   如果简单地比较Redis与Memcached的区别，大多数都会得到以下观点：
+
+ 1 、Redis不仅仅支持简单的k/v类型的数据，同时还提供list，set，zset，hash等数据结构的存储。
+ 2 、Redis支持数据的备份，即master-slave模式的数据备份。
+ 3 、Redis支持数据的持久化，可以将内存中的数据保持在磁盘中，重启的时候可以再次加载进行使用。</code></pre>
+<p>（1）、会话缓存（Session Cache）<br>最常用的一种使用Redis的情景是会话缓存（session cache）。用Redis缓存会话比其他存储（如Memcached）的优势在于：Redis提供持久化。当维护一个不是严格要求一致性的缓存时，如果用户的购物车信息全部丢失，大部分人都会不高兴的，现在，他们还会这样吗？</p>
+<p>幸运的是，随着 Redis 这些年的改进，很容易找到怎么恰当的使用Redis来缓存会话的文档。甚至广为人知的商业平台Magento也提供Redis的插件。</p>
+<p>（2）、全页缓存（FPC）<br>除基本的会话token之外，Redis还提供很简便的FPC平台。回到一致性问题，即使重启了Redis实例，因为有磁盘的持久化，用户也不会看到页面加载速度的下降，这是一个极大改进，类似PHP本地FPC。</p>
+<p>再次以Magento为例，Magento提供一个插件来使用Redis作为全页缓存后端。</p>
+<p>此外，对WordPress的用户来说，Pantheon有一个非常好的插件  wp-redis，这个插件能帮助你以最快速度加载你曾浏览过的页面。</p>
+<p>（3）、队列<br>Reids在内存存储引擎领域的一大优点是提供 list 和 set 操作，这使得Redis能作为一个很好的消息队列平台来使用。Redis作为队列使用的操作，就类似于本地程序语言（如Python）对 list 的 push/pop 操作。</p>
+<p>如果你快速的在Google中搜索“Redis queues”，你马上就能找到大量的开源项目，这些项目的目的就是利用Redis创建非常好的后端工具，以满足各种队列需求。例如，Celery有一个后台就是使用Redis作为broker，你可以从这里去查看。</p>
+<p>（4），排行榜/计数器<br>Redis在内存中对数字进行递增或递减的操作实现的非常好。集合（Set）和有序集合（Sorted Set）也使得我们在执行这些操作的时候变的非常简单，Redis只是正好提供了这两种数据结构。所以，我们要从排序集合中获取到排名最靠前的10个用户–我们称之为“user_scores”，我们只需要像下面一样执行即可：</p>
+<p>当然，这是假定你是根据你用户的分数做递增的排序。如果你想返回用户及用户的分数，你需要这样执行：</p>
+<p>ZRANGE user_scores 0 10 WITHSCORES</p>
+<p>Agora Games就是一个很好的例子，用Ruby实现的，它的排行榜就是使用Redis来存储数据的，你可以在这里看到。</p>
+<p>（5）、发布/订阅<br>最后（但肯定不是最不重要的）是Redis的发布/订阅功能。发布/订阅的使用场景确实非常多。我已看见人们在社交网络连接中使用，还可作为基于发布/订阅的脚本触发器，甚至用Redis的发布/订阅功能来建立聊天系统！（不，这是真的，你可以去核实）。</p>
+<p>Redis提供的所有特性中，我感觉这个是喜欢的人最少的一个，虽然它为用户提供如果此多功能。</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>django model的一些常用查询指令</title>
+    <url>/2021/01/20/django-model%E7%9A%84%E4%B8%80%E4%BA%9B%E5%B8%B8%E7%94%A8%E6%9F%A5%E8%AF%A2%E6%8C%87%E4%BB%A4/</url>
+    <content><![CDATA[<pre><code>__exact 精确等于 like ‘aaa’  
+__iexact 精确等于 忽略大小写 ilike ‘aaa’  
+__contains 包含 like ‘%aaa%’
+__icontains 包含 忽略大小写 ilike ‘%aaa%’，但是对于sqlite来说，contains的作用效果等同于icontains。</code></pre>
+<a id="more"></a>
+<pre><code>__gt 大于
+__gte 大于等于
+__lt 小于
+__lte 小于等于
+__in 存在于一个list范围内
+__startswith 以…开头
+__istartswith 以…开头 忽略大小写
+__endswith 以…结尾
+__iendswith 以…结尾，忽略大小写
+__range 在…范围内
+__year 日期字段的年份
+__month 日期字段的月份
+__day 日期字段的日
+__isnull=True/False
+__isnull=True 与 __exact=None的区别</code></pre>
+]]></content>
+      <categories>
+        <category>python</category>
+        <category>django</category>
+      </categories>
+      <tags>
+        <tag>python</tag>
+        <tag>django</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker时间与宿主机不一致</title>
+    <url>/2020/04/27/docker%E6%97%B6%E9%97%B4%E4%B8%8E%E5%AE%BF%E4%B8%BB%E6%9C%BA%E4%B8%8D%E4%B8%80%E8%87%B4/</url>
+    <content><![CDATA[<h2 id="检测时间"><a href="#检测时间" class="headerlink" title="检测时间"></a>检测时间</h2><p>1.首先看宿主机时间</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-attr">[root@localhost ~]</span># <span class="selector-tag">date</span></span><br><span class="line"><span class="selector-tag">Mon</span> <span class="selector-tag">Apr</span> 27 16<span class="selector-pseudo">:33</span><span class="selector-pseudo">:13</span> <span class="selector-tag">CST</span> 2020</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>2.在看容器时间</p>
+<figure class="highlight elixir"><table><tr><td class="code"><pre><span class="line">root<span class="variable">@a9444253b914</span><span class="symbol">:/usr/local/tomcat</span><span class="comment"># date</span></span><br><span class="line">Mon Apr <span class="number">27</span> 08<span class="symbol">:</span><span class="number">36</span><span class="symbol">:</span><span class="number">30</span> UTC <span class="number">2020</span></span><br></pre></td></tr></table></figure>
+<p>这里我们可以看出容器的时间跟宿主机不在一个时间</p>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><p>1.我们可以将宿主的localtime文件copy到container id中替换掉</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">docker cp <span class="regexp">/etc/</span>localtime 容器ID:<span class="regexp">/etc/</span>localtime</span><br><span class="line">[root@localhost appdatas]<span class="comment"># docker cp /etc/localtime cat:/etc/localtime </span></span><br><span class="line"></span><br><span class="line">Error response from daemon: Error processing tar file(<span class="keyword">exit</span> status <span class="number">1</span>): invalid symlink <span class="string">&quot;/usr/share/zoneinfo/UCT&quot;</span> -&gt; <span class="string">&quot;../usr/share/zoneinfo/Asia/Shanghai&quot;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>ps:因为软连接的问题导致这里报错<br>我们可以将宿主机的配置文件到其他地方(不保存原有的连接属性)</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">cp <span class="regexp">/etc/</span>localtime ./</span><br></pre></td></tr></table></figure>
+<p>2.我们这时候在看下容器时间</p>
+<figure class="highlight elixir"><table><tr><td class="code"><pre><span class="line">root<span class="variable">@a9444253b914</span><span class="symbol">:/usr/local/tomcat</span><span class="comment"># date</span></span><br><span class="line">Mon Apr <span class="number">27</span> <span class="number">16</span><span class="symbol">:</span><span class="number">48</span><span class="symbol">:</span><span class="number">23</span> CST <span class="number">2020</span></span><br></pre></td></tr></table></figure>
+<!--more-->
+<h2 id="容器时间的坑"><a href="#容器时间的坑" class="headerlink" title="容器时间的坑"></a>容器时间的坑</h2><p>1.有时候我们程序需要打印日志,会发现容器的时间跟宿主时间是一致但是输出的日志时间有问题<br>2.解决方法</p>
+<figure class="highlight arcade"><table><tr><td class="code"><pre><span class="line">echo Asia/Shanghai &gt; <span class="regexp">/etc/</span>timezone</span><br></pre></td></tr></table></figure>
+<p>3.这时候我们需要重启下容器,然后检查日志.这时候我们的日志时间就正常了</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python-GIL全局解释器</title>
+    <url>/2021/01/17/python-GIL%E5%85%A8%E5%B1%80%E8%A7%A3%E9%87%8A%E5%99%A8/</url>
+    <content><![CDATA[<pre><code>    在非python环境中，单核情况下，同时只能有一个任务执行。多核时可以支持多个线程同时执行。但是在python中，无论有多少个核
+    同时只能执行一个线程。究其原因，这就是由于GIL的存在导致的。
+    GIL的全程是全局解释器，来源是python设计之初的考虑，为了数据安全所做的决定。某个线程想要执行，必须先拿到GIL，我们可以
+    把GIL看做是“通行证”，并且在一个python进程之中，GIL只有一个。拿不到线程的通行证，并且在一个python进程中，GIL只有一个，
+    拿不到通行证的线程，就不允许进入CPU执行。GIL只在cpython中才有，因为cpython调用的是c语言的原生线程，所以他不能直接操
+    作cpu，而只能利用GIL保证同一时间只能有一个线程拿到数据。而在pypy和jpython中是没有GIL的
+    python在使用多线程的时候，调用的是c语言的原生过程。</code></pre>
+<a id="more"></a>
+<pre><code>                        python针对不同类型的代码执行效率也是不同的
+    1、CPU密集型代码（各种循环处理、计算等），在这种情况下，由于计算工作多，ticks技术很快就会达到阀值，然后出发GIL的
+    释放与再竞争（多个线程来回切换当然是需要消耗资源的），所以python下的多线程对CPU密集型代码并不友好。
+    2、IO密集型代码（文件处理、网络爬虫等设计文件读写操作），多线程能够有效提升效率（单线程下有IO操作会进行IO等待，
+    造成不必要的时间浪费，而开启多线程能在线程A等待时，自动切换到线程B，可以不浪费CPU的资源，从而能提升程序的执行
+    效率）。所以python的多线程对IO密集型代码比较友好。
+主要要看任务的类型，我们把任务分为I/O密集型和计算密集型，而多线程在切换中又分为I/O切换和时间切换。如果任务属于是I/O密集型，
+若不采用多线程，我们在进行I/O操作时，势必要等待前面一个I/O任务完成后面的I/O任务才能进行，在这个等待的过程中，CPU处于等待
+状态，这时如果采用多线程的话，刚好可以切换到进行另一个I/O任务。这样就刚好可以充分利用CPU避免CPU处于闲置状态，提高效率。但是
+如果多线程任务都是计算型，CPU会一直在进行工作，直到一定的时间后采取多线程时间切换的方式进行切换线程，此时CPU一直处于工作状态，
+此种情况下并不能提高性能，相反在切换多线程任务时，可能还会造成时间和资源的浪费，导致效能下降。这就是造成上面两种多线程结果不能的解释。</code></pre>
+<p>结论:I/O密集型任务，建议采取多线程，还可以采用多进程+协程的方式(例如:爬虫多采用多线程处理爬取的数据)；对于计算密集型任务，python此时就不适用了。</p>
+]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+      <tags>
+        <tag>python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python+django+uwsgi使用process</title>
+    <url>/2021/02/22/python-django-uwsgi%E4%BD%BF%E7%94%A8process/</url>
+    <content><![CDATA[<h2 id="uwsgi启动django接口使用process会将接口阻塞"><a href="#uwsgi启动django接口使用process会将接口阻塞" class="headerlink" title="uwsgi启动django接口使用process会将接口阻塞"></a>uwsgi启动django接口使用process会将接口阻塞</h2><p>将进程池转换为线程池接口就可以正常使用了</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>python多线程详解</title>
+    <url>/2021/01/17/python%E5%A4%9A%E7%BA%BF%E7%A8%8B/</url>
+    <content><![CDATA[<h3 id="什么是线程？"><a href="#什么是线程？" class="headerlink" title="什么是线程？"></a>什么是线程？</h3><pre><code>  线程也叫轻量级进程，是操作系统能够进行运算调度的最小单位，它被包涵在进程之中，是进程中的实际运作单位。
+  线程自己不拥有系统资源，只拥有一点儿在运行中必不可少的资源，但它可与同属一个进程的其他线程共享进程所
+  拥有的全部资源。一个线程可以创建和撤销另一个线程，同一个进程中的多个线程之间可以并发执行</code></pre>
+<a id="more"></a>
+
+<h3 id="为什么要使用多线程？"><a href="#为什么要使用多线程？" class="headerlink" title="为什么要使用多线程？"></a>为什么要使用多线程？</h3><pre><code>线程在程序中是独立的、并发的执行流。与分隔的进程相比，进程中线程之间的隔离程度要小，它们共享内存、文件句柄
+和其他进程应有的状态。
+因为线程的划分尺度小于进程，使得多线程程序的并发性高。进程在执行过程之中拥有独立的内存单元，而多个线程共享
+内存，从而极大的提升了程序的运行效率。
+线程比进程具有更高的性能，这是由于同一个进程中的线程都有共性，多个线程共享一个进程的虚拟空间。线程的共享环境
+包括进程代码段、进程的共有数据等，利用这些共享的数据，线程之间很容易实现通信。
+操作系统在创建进程时，必须为改进程分配独立的内存空间，并分配大量的相关资源，但创建线程则简单得多。因此，使用多线程
+来实现并发比使用多进程的性能高得要多。</code></pre>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><pre><code>使用多线程编程具有如下几个优点：
+   1.进程之间不能共享内存，但线程之间共享内存非常容易。
+   2.操作系统在创建进程时，需要为该进程重新分配系统资源，但创建线程的代价则小得多。因此使用多线程来实现多任务并发执行比使用多进程的效率高
+   3.python语言内置了多线程功能支持，而不是单纯地作为底层操作系统的调度方式，从而简化了python的多线程编程。</code></pre>
+]]></content>
+      <tags>
+        <tag>python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python字典底层实现原理</title>
+    <url>/2021/02/21/python%E5%AD%97%E5%85%B8%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/</url>
+    <content><![CDATA[<h2 id="什么是字典？"><a href="#什么是字典？" class="headerlink" title="什么是字典？"></a>什么是字典？</h2><p>字典是一系列由键（key）和值（value）配对组成的元素的集合。字典是一个可变容器模型，可以存储任意类型对象。字典实现与哈希算法密不可分（不同的Python版本，算法会不同），不了解哈希算法的童鞋可以先去了解相关知识。</p>
+<a id="more"></a>
+<h2 id="字典是否是有序的？"><a href="#字典是否是有序的？" class="headerlink" title="字典是否是有序的？"></a>字典是否是有序的？</h2><p>在Python3.6之前，字典是无序的，但是Python3.7+，字典是有序的。在3.6中，字典有序是一个implementation detail，在3.7才正式成为语言特性，因此3.6中无法确保100%有序。</p>
+<h2 id="字典的查询、添加、删除的时间复杂度？"><a href="#字典的查询、添加、删除的时间复杂度？" class="headerlink" title="字典的查询、添加、删除的时间复杂度？"></a>字典的查询、添加、删除的时间复杂度？</h2><p>字典的查询、添加、删除的平均时间复杂度都是O(1)（为什么是平均时间复杂度，文章后面会讲解到），相比列表与元祖，性能更优。</p>
+<p>四. 字典的实现原理？<br>首先说说Python3.6之前的无序字典<br>字典底层是维护一张哈希表（见下图），我们可以把哈希表看成一个列表，哈希表中的每一个元素又存储了哈希值（hash）、键（key）、值（value）3个元素。（Python3.6之前）</p>
+<p>enteies = [<br>    [‘–’, ‘–’, ‘–’],<br>    [hash, key, value],<br>    [‘–’, ‘–’, ‘–’],<br>    [‘–’, ‘–’, ‘–’],<br>    [hash, key, value],<br>]<br>由上可以见哈希表的存储结构，我们也可以看出，元素之间有一些空元素，我们通过增加一个元素来讲解具体实现。</p>
+<p>计算key的hash值【hash(key)】，再和mask做与操作【mask=字典最小长度（DictMinSize） - 1】，运算后会得到一个数字【index】，这个index就是要插入的enteies哈希表中的下标位置<br>若index下标位置已经被占用，则会判断enteies的key是否与要插入的key是否相等<br>如果key相等就表示key已存在，则更新value值<br>如果key不相等，就表示hash冲突，则会继续向下寻找空位置，一直到找到剩余空位为止。<br>以上介绍了老字典的实现过程，下面我们带入具体的数值来介绍。</p>
+<h3 id="给字典添加一个值，key为hello，value为word"><a href="#给字典添加一个值，key为hello，value为word" class="headerlink" title="给字典添加一个值，key为hello，value为word"></a>给字典添加一个值，key为hello，value为word</h3><p>my_dict[‘hello’] = ‘word’</p>
+<h3 id="假设是一个空列表，hash表初始如下"><a href="#假设是一个空列表，hash表初始如下" class="headerlink" title="假设是一个空列表，hash表初始如下"></a>假设是一个空列表，hash表初始如下</h3><p>enteies = [<br>    [‘–’, ‘–’, ‘–’],<br>    [‘–’, ‘–’, ‘–’],<br>    [‘–’, ‘–’, ‘–’],<br>    [‘–’, ‘–’, ‘–’],<br>    [‘–’, ‘–’, ‘–’],<br>]</p>
+<p>hash_value = hash(‘hello’)  # 假设值为 12343543 注：以下计算值不等于实际值，仅为演示使用<br>index = hash_value &amp; ( len(enteies) - 1)  # 假设index值计算后等于3，具体的hash算法本文不做介绍</p>
+<h3 id="下面会将值存在enteies中"><a href="#下面会将值存在enteies中" class="headerlink" title="下面会将值存在enteies中"></a>下面会将值存在enteies中</h3><p>enteies = [<br>    [‘–’, ‘–’, ‘–’],<br>    [‘–’, ‘–’, ‘–’],<br>    [‘–’, ‘–’, ‘–’],<br>    [12343543, ‘hello’, ‘word’],  # index=3<br>    [‘–’, ‘–’, ‘–’],<br>]</p>
+<h3 id="我们继续向字典中添加值"><a href="#我们继续向字典中添加值" class="headerlink" title="我们继续向字典中添加值"></a>我们继续向字典中添加值</h3><p>my_dict[‘color’] = ‘green’</p>
+<p>hash_value = hash(‘color’)  # 假设值为 同样为12343543<br>index = hash_value &amp; ( len(enteies) - 1)  # 假设index值计算后同样等于3</p>
+<h3 id="下面会将值存在enteies中-1"><a href="#下面会将值存在enteies中-1" class="headerlink" title="下面会将值存在enteies中"></a>下面会将值存在enteies中</h3><p>enteies = [<br>    [‘–’, ‘–’, ‘–’],<br>    [‘–’, ‘–’, ‘–’],<br>    [‘–’, ‘–’, ‘–’],<br>    [12343543, ‘hello’, ‘word’],  # 由于index=3的位置已经被占用，且key不一样，所以判定为hash冲突，继续向下寻找<br>    [12343543, ‘color’, ‘green’],  # 找到空余位置，则保存<br>]<br>通过上面的讲解，已经了解了字典的插入的过程，可以更具此过程分析出字典查找、插入的执行过程，这里就不过多赘述。我们可以看到，不同的key计算的出的index值是不一样的，在enteies中插入的位置不一样，所以当我们遍历字典的时候，字段的顺序与我们插入的顺序是不相同的。</p>
+<p>我们同样可以发现，enteies表是稀疏的，随着我们插入的值不同，enteies表会越来越稀疏（enteies也是一个会动态扩展长度的，每一此扩展长度，都会重新计算所有key的hash值），所以新的字典实现就随之出现。</p>
+<ol start="2">
+<li>Python3.7+后的新的实现方式</li>
+</ol>
+<p>老字典使用一张hash，而新字典还使用了一张Indices表来辅助。下来列出新的结构：</p>
+<p>indices = [None, None, index, None, index, None, index]<br>enteies = [<br>    [hash0, key0, value0],<br>    [hash1, key1, value1],<br>    [hash2, key2, value2]<br>]<br>下面为具体的实现过程：</p>
+<p>计算key的hash值【hash(key)】，再和mask做与操作【mask=字典最小长度（IndicesDictMinSize） - 1】，运算后会得到一个数字【index】，这个index就是要插入的indices的下标位置（注：具体算法与Python版本相关，并不一定一样）<br>得到index后，会找到indices的位置，但是此位置不是存的hash值，而是存的len(enteies)，表示该值在enteies中的位置<br>如果出现hash冲突，则处理方式与老字典处理方式类似<br>下面带入实际实现过程：</p>
+<h3 id="给字典添加一个值，key为hello，value为word-1"><a href="#给字典添加一个值，key为hello，value为word-1" class="headerlink" title="给字典添加一个值，key为hello，value为word"></a>给字典添加一个值，key为hello，value为word</h3><p>my_dict[‘hello’] = ‘word’</p>
+<h3 id="假设是一个空列表，hash表初始如下-1"><a href="#假设是一个空列表，hash表初始如下-1" class="headerlink" title="假设是一个空列表，hash表初始如下"></a>假设是一个空列表，hash表初始如下</h3><p>indices = [None, None, None, None, None, None]<br>enteies = []</p>
+<p>hash_value = hash(‘hello’)  # 假设值为 12343543<br>index = hash_value &amp; ( len(indices) - 1)  # 假设index值计算后等于3，具体的hash算法本文不做介绍</p>
+<h3 id="会找到indices的index为3的位置，并插入enteies的长度"><a href="#会找到indices的index为3的位置，并插入enteies的长度" class="headerlink" title="会找到indices的index为3的位置，并插入enteies的长度"></a>会找到indices的index为3的位置，并插入enteies的长度</h3><p>indices = [None, None, None, 0, None, None]</p>
+<h3 id="此时enteies会插入第一个元素"><a href="#此时enteies会插入第一个元素" class="headerlink" title="此时enteies会插入第一个元素"></a>此时enteies会插入第一个元素</h3><p>enteies = [<br>    [12343543, ‘hello’, ‘word’]<br>]</p>
+<h3 id="我们继续向字典中添加值-1"><a href="#我们继续向字典中添加值-1" class="headerlink" title="我们继续向字典中添加值"></a>我们继续向字典中添加值</h3><p>my_dict[‘haimeimei’] = ‘lihua’</p>
+<p>hash_value = hash(‘haimeimei’)  # 假设值为 34323545<br>index = hash_value &amp; ( len(indices) - 1)  # 假设index值计算后同样等于 0</p>
+<h3 id="会找到indices的index为0的位置，并插入enteies的长度"><a href="#会找到indices的index为0的位置，并插入enteies的长度" class="headerlink" title="会找到indices的index为0的位置，并插入enteies的长度"></a>会找到indices的index为0的位置，并插入enteies的长度</h3><p>indices = [1, None, None, 0, None, None]</p>
+<h3 id="此时enteies会插入第一个元素-1"><a href="#此时enteies会插入第一个元素-1" class="headerlink" title="此时enteies会插入第一个元素"></a>此时enteies会插入第一个元素</h3><p>enteies = [<br>    [12343543, ‘hello’, ‘word’],<br>    [34323545, ‘haimeimei’, ‘lihua’]<br>]<br>我们在来看一下查询字典的具体过程：</p>
+<h3 id="下面是一个字典与字典的存储"><a href="#下面是一个字典与字典的存储" class="headerlink" title="下面是一个字典与字典的存储"></a>下面是一个字典与字典的存储</h3><p>more_dict = {‘name’: ‘张三’, ‘sex’: ‘男’, ‘age’: 10, ‘birth’: ‘2019-01-01’}</p>
+<h3 id="数据实际存储"><a href="#数据实际存储" class="headerlink" title="数据实际存储"></a>数据实际存储</h3><p>indices = [None, 2, None, 0, None, None, 1, None, 3]<br>enteies = [<br>    [34353243, ‘name’, ‘张三’],<br>    [34354545, ‘sex’, ‘男’],<br>    [23343199, ‘age’, 10],<br>    [00956542, ‘birth’, ‘2019-01-01’],<br>]</p>
+<p>print(more_dict[‘age’])  # 当我们执行这句时</p>
+<p>hash_value = hash(‘age’)  # 假设值为 23343199<br>index = hash_value &amp; ( len(indices) - 1)  # index = 1</p>
+<p>entey_index = indices[1]  # 数据在enteies的位置是2<br>value = enteies[entey_index]  # 所以找到值为 enteies[2]<br>由上可以看出，新字典存储数据本身的enteies并不会稀疏，由indices来维护具体存储的位置，enteies中的数据是和插入的数据是一样的，所以新的字典是有序的。</p>
+<p>上面的例子没有说明冲突的解决方案，大家可以自己思考思考。</p>
+<h2 id="时间复杂度说明"><a href="#时间复杂度说明" class="headerlink" title="时间复杂度说明"></a>时间复杂度说明</h2><p>我们在上面提到了，字典的平均时间复杂度是O(1)，因为字典是通过哈希算法来实现的，哈希算法不可避免的问题就是hash冲突，Python字典发生哈希冲突时，会向下寻找空余位置，直到找到位置。如果在计算key的hash值时，如果一直找不到空余位置，则字典的时间复杂度就变成了O(n)了，所以Python的哈希算法就显得非常重要了。Python字典的哈希算法，会尽量保证哈希值计算出的index是平均分布且每一个值之间有剩余位置，例如:</p>
+<p>[index, None, None, None, index, None, None, None]<br>及index尽量只为 0, 3, 5, 7类似值，保证在发生哈希冲突时，能很快的找到空余位置。</p>
+<h2 id="字典的key能使用什么值？"><a href="#字典的key能使用什么值？" class="headerlink" title="字典的key能使用什么值？"></a>字典的key能使用什么值？</h2><p>Python字典的key可以使用字符串（str），整型（int），元祖（tuple）等。我们已经知道，字典是通过哈希算法来计算key的值，所以key必须为可哈希的，list不能作为字典的key，因为list是可变的及不可哈希的对象，所以不能作为字典的key。</p>
+]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+      <tags>
+        <tag>python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>python学习:列表list</title>
+    <url>/2020/08/24/python%E5%AD%A6%E4%B9%A0-%E5%88%97%E8%A1%A8list/</url>
+    <content><![CDATA[<h3 id="list内置函数使用"><a href="#list内置函数使用" class="headerlink" title="list内置函数使用"></a>list内置函数使用</h3><h4 id="pop"><a href="#pop" class="headerlink" title="pop"></a>pop</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">l = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br><span class="line">l.pop() <span class="comment"># 默认弹出索引-1(最后一个值)并返回值</span></span><br><span class="line"><span class="number">4</span></span><br></pre></td></tr></table></figure>
+<h4 id="clear"><a href="#clear" class="headerlink" title="clear"></a>clear</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">l = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br><span class="line">l.clear() <span class="comment"># 原地清空list,返回None</span></span><br><span class="line">[]</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h4 id="remove"><a href="#remove" class="headerlink" title="remove"></a>remove</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">l = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br><span class="line">l.remove(<span class="number">1</span>) <span class="comment"># 需要填写1个参数,原地删除指定值,返回None</span></span><br><span class="line">[<span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br></pre></td></tr></table></figure>
+<h4 id="index"><a href="#index" class="headerlink" title="index"></a>index</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">l = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br><span class="line">l.index(<span class="number">1</span>) <span class="comment"># 需要输入一个值,来判断当前值在list中索引位置</span></span><br><span class="line"><span class="number">0</span></span><br></pre></td></tr></table></figure>
+<h4 id="sort"><a href="#sort" class="headerlink" title="sort"></a>sort</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">l = [<span class="number">1</span>, <span class="number">3</span>, <span class="number">2</span>, <span class="number">4</span>]</span><br><span class="line">l.sort() <span class="comment"># 按小到大的顺序排序,就地修改,返回None</span></span><br><span class="line">[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br></pre></td></tr></table></figure>
+<h4 id="reverse"><a href="#reverse" class="headerlink" title="reverse"></a>reverse</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">l = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br><span class="line">l.reverse() <span class="comment"># 将当前list倒排,就地修改,返回None</span></span><br><span class="line">[<span class="number">4</span>, <span class="number">3</span>, <span class="number">2</span>, <span class="number">1</span>]</span><br></pre></td></tr></table></figure>
+<h4 id="insert"><a href="#insert" class="headerlink" title="insert"></a>insert</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">l = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br><span class="line">l.insert(<span class="number">0</span>, <span class="number">0</span>) <span class="comment"># 需要填写两个参数,第一个为索引地址, 第二个是要插入的值,用于插入数据.就地修改,返回None</span></span><br><span class="line">[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br></pre></td></tr></table></figure>
+<h4 id="append"><a href="#append" class="headerlink" title="append"></a>append</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">l = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br><span class="line">l.append(<span class="number">5</span>) <span class="comment"># 需要填写一个参数,该参数是要追加的内容.就地修改,返回None</span></span><br><span class="line">[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]</span><br></pre></td></tr></table></figure>
+<h4 id="extend"><a href="#extend" class="headerlink" title="extend"></a>extend</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">l1 = [<span class="number">1</span>, <span class="number">2</span>]</span><br><span class="line">l2 = [<span class="number">3</span>, <span class="number">4</span>]</span><br><span class="line">l1.extend(l2) <span class="comment"># 该参数必须是iteration,将两个list合并跟(l1 + l2)相似.extend就地修改,两个list相加则返回新的list</span></span><br><span class="line">[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br></pre></td></tr></table></figure>
+<h4 id="count"><a href="#count" class="headerlink" title="count"></a>count</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">l = [<span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]</span><br><span class="line">l.count(<span class="number">1</span>) <span class="comment"># 这个查数用于统计list中出次数,不在这个list则返回0</span></span><br><span class="line"><span class="number">3</span></span><br></pre></td></tr></table></figure>
+<h4 id="copy"><a href="#copy" class="headerlink" title="copy"></a>copy</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line">l1 = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br><span class="line">l2 = l1.copy() <span class="comment"># 用于copy一个list,会返回一个新的list</span></span><br><span class="line">[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br></pre></td></tr></table></figure>]]></content>
+      <tags>
+        <tag>list</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>redis跟session</title>
+    <url>/2020/03/25/redis%E8%B7%9Fsession/</url>
+    <content><![CDATA[<h1 id="什么是Redis"><a href="#什么是Redis" class="headerlink" title="什么是Redis"></a>什么是Redis</h1><p>Redis是一个开源的使用ANSI C语言编写、支持网络、可基于内存亦可持久化的日志型、Key-Value数据库，并提供多种语言的API</p>
+<a id="more"></a>
+<h1 id="与其他用户状态保存方案比较"><a href="#与其他用户状态保存方案比较" class="headerlink" title="与其他用户状态保存方案比较"></a>与其他用户状态保存方案比较</h1><p>一般开发中用户状态使用session或者cookie，两种方式各种利弊。<br>Session:在InProc模式下容易丢失，并且引起并发问题。如果使用SQLServer或者SQLServer模式又消耗了性能<br>Cookie则容易将一些用户信息暴露，加解密同样也消耗了性能。<br>Redis采用这样的方案解决了几个问题，<br>①.Redis存取速度快。<br>②.用户数据不容易丢失。<br>③.用户多的情况下容易支持集群。<br>④.能够查看在线用户。<br>⑤.能够实现用户一处登录。（通过代码实现，后续介绍）<br>⑥.支持持久化。（当然可能没什么用）</p>
+<h1 id="实现思路"><a href="#实现思路" class="headerlink" title="实现思路"></a>实现思路</h1><p>1.我们知道session其实是在cookie中保存了一个sessionid，用户每次访问都将sessionid发给服务器，服务器通过ID查找用户对应的状态数据。<br>在这里我的处理方式也是在cookie中定义一个sessionid，程序需要取得用户状态时将sessionid做为key在Redis中查找。<br>2.同时session支持用户在一定时间不访问将session回收。</p>
+]]></content>
+      <tags>
+        <tag>技术</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>检查 Linux 服务器性能九条命令 </title>
+    <url>/2020/03/25/%E6%A3%80%E6%9F%A5-Linux-%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%80%A7%E8%83%BD%E5%8D%81%E6%9D%A1%E5%91%BD%E4%BB%A4/</url>
+    <content><![CDATA[<p>Linux 服务器突然负载暴增，告警短信快发爆你的手机，如何在最短时间内找出 Linux性能问题所在？<br>通过执行以下十条命令，可以在 1 分钟内对系统资源使用情况有个大致的了<br>解，在一分钟内对机器性能问题进行诊断。  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">uptime</span><br><span class="line">dmesg | tail</span><br><span class="line">vmstat 1</span><br><span class="line">mpstat -P ALL 1</span><br><span class="line">pidstat 1</span><br><span class="line">iostat -xz 1</span><br><span class="line">free -m</span><br><span class="line">sar -n DEV 1</span><br><span class="line">sar -n TCP,ETCP 1</span><br><span class="line">top</span><br></pre></td></tr></table></figure>
+<p>其中一些命令需要安装 sysstat 包，有一些由 procps 包提供。这些命令的输出，有助于快速定位性能瓶颈，检查出所有资源（CPU、内存、磁盘 IO 等）的利用率（utilization）、饱和度（saturation）和错误（error）度量，也就是所谓的 USE 方法。</p>
+<a id="more"></a>
+<h1 id="uptime"><a href="#uptime" class="headerlink" title="uptime"></a>uptime</h1><p>Uptaime 命令可以快速查看机器的负载情况。在 Linux 系统中，这些数据表示等待 CPU  资源的进程和阻塞在不可断 IO 进程（进程状态为 D）的数量。这些数据可以是我们对系统资源使用有一个宏观的了解。  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[root@localhost ~]<span class="comment"># uptime</span></span><br><span class="line">22:13:19 up 38 min, 3 users, load average: 0.15, 0.31, 0.28</span><br></pre></td></tr></table></figure>
+<p>命令的输出分别表示 1 分钟、5 分钟、15 分钟的平均负载情况。通过这三个数据，可以了解服务器负载是在于紧张还是区域缓解。  </p>
+<p>如果 1 分钟平均负载很高，而 15 分钟平均负载很低，说明服务器正在命令高负载情况，需要进一步排查 CPU 资源都消耗在了哪里。反之，如果 15 分钟平均负载很高，1 分钟平均负载 较低，则有可能是 CPU 资源紧张时刻已经过去。</p>
+<p>从上面的中的输出，可以看见最近 1 分钟的平均负载非常高，且远高于最近 15 分钟负载，因此需要继续排查当前系统中有什么进程消耗了大量的资源。可以通过下文将会介绍的vmstat、mpstat 等命令进一步排查。  </p>
+<h1 id="dmesg-tail"><a href="#dmesg-tail" class="headerlink" title="dmesg | tail"></a>dmesg | tail</h1><p>dmesg 命令用来帮助用户了解系统的启动信息。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[root@localhost ~]<span class="comment"># dmesg | tail</span></span><br><span class="line">[ 34.030381] intel_rapl: no valid rapl domains found <span class="keyword">in</span> package 0</span><br><span class="line">[ 34.426462] Adding 2097148k swap on /dev/mapper/cl-swap. Priority:-1</span><br><span class="line">extents:1 across:2097148k FS</span><br><span class="line">[ 34.432204] XFS (sda1): Mounting V5 Filesystem</span><br><span class="line">[ 35.264011] floppy0: no floppy controllers found</span><br><span class="line">[ 35.264208] work still pending</span><br><span class="line">[ 35.972859] XFS (sda1): Ending clean mount</span><br><span class="line">[ 37.805777] <span class="built_in">type</span>=1305 audit(1503670496.246:3): audit_pid=606 old=0</span><br><span class="line">auid=4294967295 ses=4294967295 subj=system_u:system_r:auditd_t:s0 res=1</span><br><span class="line">[ 39.091684] NET: Registered protocol family 40</span><br><span class="line">[ 42.367549] IPv6: ADDRCONF(NETDEV_UP): ens33: link is not ready</span><br><span class="line">[ 42.386411] e1000: ens33 NIC Link is Up 1000 Mbps Full Duplex, Flow Control: </span><br><span class="line">None</span><br></pre></td></tr></table></figure>
+<p>该命令输出系统日志的最后 10 行，从示例中的输出可以看到 ens33 网卡以 1000Mbps，全双工方式正常启动。这些日志可以帮助排查性能问题。</p>
+<h1 id="vmstat-1"><a href="#vmstat-1" class="headerlink" title="vmstat 1"></a>vmstat 1</h1><p>vmstat 命令，每行会输出一些系统核心指标，这些指标可以让我们更详细的了解系统状态。  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[root@localhost ~]<span class="comment"># vmstat 1</span></span><br><span class="line">procs -------memory---------- ---swap-- -----io---- -system-- ------cpu-----</span><br><span class="line">r b swpd free buff cache si so bi bo <span class="keyword">in</span> cs us sy id wa st</span><br><span class="line">2 0 0 1812152 948 128820 0 0 88 11 81 152 1 2 96 2 0</span><br><span class="line">0 0 0 1812152 948 128852 0 0 0 0 71 126 0 0 100 0 0</span><br><span class="line">0 0 0 1812152 948 128852 0 0 0 0 68 116 0 1 99 0 0</span><br></pre></td></tr></table></figure>
+<p>后面跟的数 1，表示每秒输出一次统计信息，表头提示了每一列的含义，这几介绍一些和性能调优相关的列：<br> r：等待在 CPU 资源的进程数。这个数据比平均负载更加能够体现 CPU 负载情况，数据中不包含等待 IO 的进程。如果这个数值大于机器 CPU 核数，那么机器的 CPU 资源已经饱和。  </p>
+<p> free：系统可用内存数（以千字节为单位），如果剩余内存不足，也会导致系统性能问题。下文介到的 free 命令，可以更详细的了解系统内存的使用情况。  </p>
+<p> si, so：交换区写入和读取的数量。如果这个数据不为 0，说明系统已经在使用交换区（swap），机器物理内存已经不足。  </p>
+<p> us, sy, id, wa, st：这些都代表了 CPU 时间的消耗，它们分别表示用户时间（user）、系统（内核）时间（sys）、空闲时间（idle）、IO 等待时间（wait）和被偷走的时间（stolen，一般被其他虚拟机消耗）。  </p>
+<p>上述这些 CPU 时间，可以让我们很快了解 CPU 是否出于繁忙状态。一般情况下，如果用户时间和系统时间相非常大，CPU 出于忙于执行指令。如果 IO 等待时间很长，那么系统的瓶颈可能在磁盘 IO。  </p>
+<h1 id="mpstat"><a href="#mpstat" class="headerlink" title="mpstat"></a>mpstat</h1><p>该命令可以显示每个 CPU 的占用情况，如果有一个 CPU 占用率特别高，那么有可能是一个单线程应用程序引的。  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[root@localhost ~]<span class="comment"># mpstat</span></span><br><span class="line">Linux 3.10.0-514.el7.x86_64 (localhost.localdomain) 08/25/2017_x86_64_(1 CPU)</span><br><span class="line">10:54:39PM CPU %usr %nice %sys %iowait %irq %soft %steal %guest %gnice %idle</span><br><span class="line">10:54:39PM all 4.2 0.00 5.29 2.36 0.00 0.15 0.00 0.00 0.00 88.00</span><br></pre></td></tr></table></figure>
+<h1 id="pidstat"><a href="#pidstat" class="headerlink" title="pidstat"></a>pidstat</h1><p>pidstat 命令输出进程的 CPU 占用率，该命令会持续输出，并且不会覆盖之前的数据</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[root@localhost ~]<span class="comment"># pidstat 1</span></span><br><span class="line">Linux 3.10.0-514.el7.x86_64 (localhost.localdomain)08/25/2017 _x86_64_(1 CPU)</span><br><span class="line">10:59:49 PM UID PID %usr %system %guest %CPU CPU Command</span><br><span class="line">10:59:50 PM 0 1011 0.00 0.99 0.00 0.99 0 kworker/0:0</span><br><span class="line">10:59:50 PM 0 1079 0.00 0.99 0.00 0.99 0 pidstat</span><br><span class="line">10:59:50 PM 0 6521 1596.23 1.89 0.00 1598.11 27 java</span><br><span class="line">10:59:50 PM 0 6564 1571.70 7.55 0.00 1579.25 28 java</span><br></pre></td></tr></table></figure>
+<p>可以方便观察系统动态。如上的输出，可以看见两个 JAVA 进程占用了将近 1600%的 CPU时间，既消耗了大约 16 个 CPU 核心的运算资源。  </p>
+<h1 id="iostat"><a href="#iostat" class="headerlink" title="iostat"></a>iostat</h1><p>iostat 命令主要用于查看机器磁盘 IO 情况。  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[root@localhost ~]<span class="comment"># iostat -xz 1</span></span><br><span class="line">Linux 3.10.0-514.el7.x86_64 (localhost.localdomain) 08/25/2017 _x86_64_(1 CPU)</span><br><span class="line">avg-cpu: %user %nice %system %iowait %steal %idle</span><br><span class="line"> 2.23 0.00 2.97 1.26 0.00 93.53</span><br><span class="line">Device: rrqm/s wrqm/s r/s w/s rkB/s wkB/s avgrq-sz avgqu-sz await r_await</span><br><span class="line">w_await svctm %util</span><br><span class="line">sda 0.00 0.25 5.89 1.18 225.70 138.41 103.06 0.54 77.55 13.05</span><br><span class="line">400.58 6.28 4.44</span><br><span class="line">scd0 0.00 0.00 0.01 0.00 0.04 0.00 8.00 0.00 32.09 32.09</span><br><span class="line">0.00 32.09 0.03</span><br><span class="line">dm-0 0.00 0.00 3.78 1.42 219.31 136.46 136.82 0.67 129.22 19.63</span><br><span class="line">421.49 8.27 4.30</span><br><span class="line">dm-1 0.00 0.00 0.12 0.00 1.01 0.00 16.69 0.00 1.27 1.27</span><br><span class="line">0.00 1.19 0.01</span><br></pre></td></tr></table></figure>
+<p>该命令输出的列，主要含义是：<br> r/s, w/s, rkB/s, wkB/s：分别表示每秒读写次数和每秒读写数据量（千字节）。读写量过大，可会引起性能问题。  </p>
+<p> await：IO 操作的平均等待时间，单位是毫秒。这是应用程序在和磁盘交互时，需要消耗的时间，包括 IO 等待和实际操作的耗时。如果这个数值过大，可能是硬件设备遇到了瓶颈或者出现故障。  </p>
+<p> avgqu-sz：向设备发出的请求平均数量。如果这个数值大于 1，可能是硬件设备已经饱和（部分前端硬件设备支持并行写入）。  </p>
+<p> %util：设备利用率。这个数值表示设备的繁忙程度，经验值是如果超过 60，可能会影响 IO 性能（可以参照 IO 操作平均等待时间）。如果到达 100%，说明硬件设备已经饱和。如果显示的是逻辑设备的数据，那么设备利用率不代表后端实际的硬件设备已经饱和。值得注意的是，即 IO 性能不理想，也不一定意味这应用程序性能会不好，可以利用诸如预读取、写缓存等策略提升应用性能。</p>
+<h1 id="free"><a href="#free" class="headerlink" title="free"></a>free</h1><p>free 命令可以查看系统内存的使用情况</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[root@localhost ~]<span class="comment"># free -m</span></span><br><span class="line"> total used free shared buff/cache available</span><br><span class="line">Mem: 1984 284 1295 8 404 1518</span><br><span class="line">Swap: 2047 0 2047</span><br></pre></td></tr></table></figure>
+<p>其中-m 参数表示按照兆字节展示。最后两列分别表示用于 IO 缓存的内数，和用于文件系统页缓存的内存数。需 要注意的是，第二行-/+ buffers/cache，看上去缓存占用了大内存空间。这是 Linux 系统的内存使用策略，尽可能的利用内存，如果应用程序需要内存，这部分内存会即被回收并分配给应用程序。因此，这部分内存一般也被当成是可用内存。<br>如果可用内存非常少，系统可能会动用交换区（如果配置了的话），这样会增加 IO 开销（可以在 iostat 命中提现），降低系统性能。</p>
+<h1 id="sar"><a href="#sar" class="headerlink" title="sar"></a>sar</h1><p>sar 命令在这里可以查看网络设备的吞吐率。在排查性能问题时，可以通过网络设备的吞吐量，判断网络设备是否已经饱和。  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[root@localhost ~]<span class="comment"># sar -n DEV 1</span></span><br><span class="line">Linux 3.10.0-514.el7.x86_64 (localhost.localdomain) 08/25/2017 _x86_64_(1 CPU)</span><br><span class="line">11:07:42 PM IFACE rxpck/s txpck/s rxkB/s txkB/s rxcmp/s txcmp/s rxmcst/s</span><br><span class="line">11:07:43 PM lo 0.00 0.00 0.00 0.00 0.00 0.00 0.00</span><br><span class="line">11:07:43 PM ens33 14.85 0.00 1.66 0.00 0.00 0.00 0.00</span><br><span class="line">sar 命令还可以用于查看 TCP 连接状态，</span><br><span class="line">[root@localhost ~]<span class="comment"># sar -n TCP,ETCP 1</span></span><br><span class="line">Linux 3.10.0-514.el7.x86_64 (localhost.localdomain) 08/25/2017 _x86_64_(1 CPU)</span><br><span class="line">11:25:03 PM active/s passive/s iseg/s oseg/s</span><br><span class="line">11:25:04 PM 0.00 0.00 1.01 1.01</span><br><span class="line">11:25:03 PM atmptf/s estres/s retrans/s isegerr/s orsts/s</span><br><span class="line">11:25:04 PM 0.00 0.00 0.00 0.00 0.00</span><br></pre></td></tr></table></figure>
+<p>输出数据其中包括：<br> active/s：每秒本地发起的 TCP 连接数，既通过 connect 调用创建的 TCP 连接；<br> passive/s：每秒远程发起的 TCP 连接数，即通过 accept 调用创建的 TCP 连接；<br> retrans/s：每秒 TCP 重传数量；<br>TCP 连接数可以用来判断性能问题是否由于建立了过多的连接，进一步可以判断是主动发起的连接，还是被动接受的连接。TCP 重传可能是因为网络环境恶劣，或者服务器压力过大导致丢包。</p>
+<h1 id="top"><a href="#top" class="headerlink" title="top"></a>top</h1><p>Top 命令能够实时显示系统中各个进程的资源占用状况。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[root@localhost ~]<span class="comment"># top</span></span><br><span class="line">top - 23:10:34 up 25 min, 2 users, load average: 0.00, 0.02, 0.05</span><br><span class="line">Tasks: 89 total, 2 running, 87 sleeping, 0 stopped, 0 zombie</span><br><span class="line">%Cpu(s): 0.3 us, 0.3 sy, 0.0 ni, 99.3 id, 0.0 wa, 0.0 hi, 0.0 si, 0.0</span><br><span class="line">st</span><br><span class="line">KiB Mem : 2032128 total, 1325336 free, 291652 used, 415140 buff/cache</span><br><span class="line">KiB Swap: 2097148 total, 2097148 free, 0 used. 1554224 avail Mem</span><br><span class="line"> PID USER PR NI VIRT RES SHR S %CPU %MEM TIME+ COMMAND </span><br><span class="line"> 633 root 20 0 302432 5984 4644 S 0.3 0.3 0:04.36 vmtoolsd</span><br><span class="line"> 1117 root 20 0 157576 2132 1520 R 0.3 0.1 0:00.10 top</span><br><span class="line"> 1 root 20 0 128092 6712 3956 S 0.0 0.3 0:05.18 systemd</span><br><span class="line"> 2 root 20 0 0 0 0 S 0.0 0.0 0:00.00 kthreadd</span><br><span class="line"> 3 root 20 0 0 0 0 S 0.0 0.0 0:02.07 ksoftirqd</span><br></pre></td></tr></table></figure>
+<p>top 命令包含了前面好几个命令的检查的内容。比如系统负载情况（uptime）、系统内存使用情况（free）、系统 CPU 使用情况 （vmstat）等。因此通过这个命令，可以相对全面的查看系统负载的来源。</p>
+<p>top 命令支持排序，可以按照不同的列排序，方便查找出诸如内存占用最 多的进程、CPU 占用率最高的进程等。但是，top 命令相对于前面一些命令，输出是一个瞬间值，如果不持续盯着，可能会错过一些线索。这时可能需要暂停 top 命令刷新，来记录和比对数据。</p>
+<p>排查 Linux 服务器性能问题还有很多工具，上面介绍的一些命令，可以帮助我们快速的定位问题。例如前面的示例输出，多个证据证明有 JAVA 进程占用了大量 CPU 资源，之后的性能调优就可以针对应用程序进行。</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>百万PV量</title>
+    <url>/2020/03/25/%E7%99%BE%E4%B8%87PV%E9%87%8F/</url>
+    <content><![CDATA[<p>每当听到这种需求时，我都会发出这样的疑问。<br>系统服务级别需要达到千万级用户量在线访问的要求不仅对整个研发团队或是运维团队带来了巨大的挑战，测试团队也不能独善其身，你真得可以证明系统服务具备这样的能力吗？<br>这样的需求听起来就十分地吓人，当你深入其中真正开始着手实施这项测试任务的时候，才会真正意识到它不仅仅是听上去吓人，而实际上也的确如此，这就是一项难于完成的任务。<br>你将面临的不仅仅是技术层面的难题，测试环境、模拟数据、资源监控等方面带来的棘手问题也将如期而至，你会深陷其中，一次又一次地调整当初所制定的测试计划和策略，以应对呼啸而来的各种“麻烦”。<br>本文为了破局，以测试需求为根本，试图从测试策略入题，结合你手头可能具备的测试条件，为你出谋划策。并列举3种策略规划以供参考，从而希望帮助你最终一步一步地完成这项艰巨的任务。<br>进一步挖掘需求  </p>
+<a id="more"></a>
+<p>一切的根本是明确性能测试需求，这个应该大家都非常清楚。单独给出“达到千万级用户量在线访问的要求”显然是意义不大的，如果未得到明确的对于执行关键业务上的性能指标要求（建议你尽量叫负责人交代清楚这些需求，而不是依靠自己去挖掘和分析），你需要进一步挖掘更加细节层面的真实需求。<br>在如此巨大的用户规模场景下，找寻执行关键业务时在事务概念上的性能需求尤为重要！<br>比如高峰时段下对于事务的响应时间、并发用户数、TPS、WIPS（the number of web interactions processed per second）、成功率等基本指标要求，这些都需要明确，只有这些指标明确了，你才明确了终结本次测试的必要条件（不然，这将是一个吞没你的无底洞）。<br>如果有过往的相似业务交易历史数据经验，你需要尽量参考，处理这些收集到的原始数据（日志），从而分析出高峰时段，以及该时段下的交易行为，交易规模等，得到你想要看清楚的需求细节。当然，如果是生产系统已经服务过一段时间，建议你首先去和运维团队进行交涉，他们手中应该掌握了充足的数据供你参考  。<br>但在有些情况下，可能没有那么幸运，无法获取到数据层面的佐证，于是，你需要采用经验方法来分析这些需求，比如可以参考一些类似行业的比较成熟的业务交易模型（比如银行业的日常交易活动或交通行业售检票交易活动）或者干脆遵循“2/8”原则和“3/5/8”原则来直接下手实践。<br>另外，在估算响应时间、并发用户数、TPS、成功率这些关键指标的同时，你仍需要关心具体的业务功能维度上的需求，记住不要过于苛刻的设计这些指标，每个业务功能都有各自的特点，有些业务功能甚至通过返回“系统忙，请等待！”这样暴力的姿态来回应用户以避免过大的处理流量所导致的大规模瘫痪，因此，学会平衡这些指标之间的关系是必要的，记住在大多数情况下最好为这些指标做一个优先级排序，并且尽量只考察几个优先级高的指标要求。<br>应对策略<br>在明确需求的前提下，你必须知道自己的家底儿，并顺藤摸瓜慢慢了解清楚整个项目的全貌。<br>1.首先，要问自己一个问题，你所掌控的资源能否支撑得起这样的测试需求？<br>你当然可以从自己手中的资源情况换算出可以模拟出的最大在线用户量。压力生成器物理机的配置和数量、测试网络的带宽和伸缩性、测试工具的性能和分布式施压特点，这些基本情况一定要掌握到心中有数，但你是否试过通过更加合理的资源组合设计和游说来增加这个在线用户量的最大值：<br>（1）你想过混合使用测试工具来完成这项任务吗？<br>你需要尽可能多得了解所有相关测试工具的使用知识，LoadRunner是你最佳的选择（QALoad、IBM Rational Performance Tester可能现在已经不流行了），但不是所有公司都有其正版授权，因此，你不得不退而求其次，开源的JMeter是你的又一个不错的选择，但免费使用的代价是其自身性能表现较之LoadRunner差之甚远，你需要通过一些技巧来弥补这些劣势。<br>通常情况下在线访问量概念下的用户行为是有迹可循的，除非是群体性有明确的目的（比如秒杀系统）会产生绝对当量级的并发行为，不然，你可以简单得把来自用户的流量拆分为在关键业务场景上产生并发行为的并发模拟用户和在全站范围内产生随机行为的背景模拟用户，背景用户不会产生有效的TPS贡献量，他们只是流量背景（产生一定的WIPS贡献），但这非常重要，因为这些行为依然会造成一定的资源损耗，占用带宽、CPU，以及数据库的IO和锁竞争，系统甚至会为他们开辟单独的Session。<br>于是，你有理由通过一些具备绝佳性能的工具Apache ab、wrk、WCAT等来实现背景用户的模拟，只需要根据背景用户行为指定测试场景，通常情况下你可以设计一个事务混合比来完成背景压力的同时，使用LoadRunner或JMeter等具备高级功能的测试工具实现并发模拟用户施压。<br>（2）你试过通过沟通来调用公司所有的设备资源吗？<br>全家大小齐上阵不是不可以实现，但你首先要说服相关负责人，在负责人首肯的情况下来游说相关干系人来使用他们的设备，在网络条件允许的情况下，你可以充分利用这些资源产生压力。<br>其次就是在一个合适的时间使用它们（通常是夜深人静的时候），你可以利用一些具备定时任务和良好集成性的框架（LoadRunner的话使用QC、JMeter的话试试Jenkins）完成无人值守测试，这将极大的解放你的生产力。<br>2.其次，你要问架构和运维一些问题，是什么样的架构设计和软硬件资源支撑起这样的需求，测试环境是否与其保持一致？<br>不要对服务端一无所知就盲目开始实施测试，记住性能测试的最终目标是找到性能瓶颈，并根据其表现结合相关数据提出优化方案。在条件允许的情况下，尽可能的了解和逐渐掌握整个系统的全貌，你才能在测试中达到事半功倍的效果。<br>（1）你想过只需要计算一下就可能算出最大服务级别吗？<br>是的，你很可能只需要一直笔就可以完成任务，通常最可能出现瓶颈的地方是网络出口带宽，你可以使用浏览器的调试模式完成关键业务场景下的流量采集，并结合一些可能的背景流量和高峰期用户行为模型，换算出单用户模式下大致的吞吐量，然后通过初等数学就可以计算出对基本网络带宽的需求量，往回比较一下测试环境的带宽情况就可以基本判断能够满足WIPS需求，进而估算其他需求能否满足。<br>但是，有些情况网络带宽可能是被估计压缩的，这样做的目的很明确，牺牲一些用户体验从而保障服务的稳定，所以有时候还是具体情况具体分析。<br>（2）你需要通过了解一些细节，设计你的测试场景和配置<br>了解架构和运维的细节是必要的，随着技术和应用场景的发展和不断变化，架构设计和运维方案也在不断的升级中，试着思考一下可能发生在你身边的变化：<br>数据层的架构已经从传统的共享存储的关系型数据库架构转变到了读写分离、非共享存储的NoSQL架构下；运维方案已经从物理主机环境发展到了容器配合分布式文件系统的虚拟化环境。<br>面对这些技术变革，作为测试工程师需要如何入手？<br>我的建议是不需要精通，你关注的是在这些新兴技术背景下可能存在的一些问题，抓住这些问题进行研究。比如读写分离或NoSQL在保障事务完整性（ACID）时的一些实现方案，你们的系统采用的是哪一套实现，读写分离的数据同步是采用的实时复制还是发布订阅方式，或者是其他方式，这里面是不是在提升性能的同时会损失一定的完整性约束？<br>这些弄清楚了，对你设计测试场景有巨大的帮助，所谓“打蛇打七寸”就是这个道理，你甚至可以预判出一些系统实现上的技术风险，并围绕着它展开测试，一切有目的性的实施测试，才能最有效的发现问题。<br>另外，对实际运维中的环境和配置细节，你也需要不遗余力的弄清楚。应对如此大的用户访问量，服务端的集群方案是使用了类似于反向代理的Web服务器的软件负载均衡方案，还是使用了F5这样纯硬件负载均衡方案，负载均衡策略是如何制定的，是基于IP地址导向流量？还是基于压力分布的纯动态分配流量？这些细节都与你后期比如进行IP欺骗或分配测试压力息息相关。<br>最终还要求你需要尽可能的了解被测试系统环境与真实生产环境所存在的差异性， 应对这些差异，提出合理的解决方案。<br>3.最后，你要问开发和功能测试兄弟一些问题，这里面会不会有你不知道的坑？<br>你可能是一名专职的性能测试工程师，这就造成了一个盲点，你无法面面俱到的了解到系统的整个需求，不要漠视功能上的一些细节需求，这些可能都是你将来在设计测试场景、开发测试脚本、准备测试数据、进行测试实施时要面对的坑。<br>（1）拿到接口文档，了解数据规范，有利于你构造测试数据或生成一些背景数据；<br>（2）弄清各种安全策略，协议层采用SSL会话？客户端硬件加密狗？敏感信息采用对称加密或是protobuf协议文件序列化方式？应用界面采用验证码，验证码的复杂度如何？对于来自相同用户名或网络地址的用户是否有访问控制限制？面对这些策略，你是否有能力独自应对，必要时，试着找开发共同解决；<br>（3）了解交互信息反馈方式，面对服务器产生错误，是否进行了友好的页面反馈，比如500状态码依旧返回200状态码的错误页面，或是服务器完全规避了一些错误反馈信息，有利于你有效的开展检查点和断言校验，避免由工具自己校验的错误；<br>（4）熟悉一些特殊的功能需求，系统是否对用户在业务操作上有所限定，比如在某段时间范围或面对某些特殊场景在数量或频率上有一些限制等，使得你能够正确的设计脚本的事务场景。  </p>
+<h1 id="推荐3种策略规划"><a href="#推荐3种策略规划" class="headerlink" title="推荐3种策略规划"></a>推荐3种策略规划</h1><p>全效达标策略<br>当你经过大量评估，确信你可以做到模拟千万级用户量执行测试的时候，恭喜你，你将可以以最为接近真实世界的方式来开展本次测试。<br>现在可能唯一困扰你的问题就是如何对服务端环境进行监控以在测试进行中获取足够的数据来支撑你将来的性能瓶颈分析。在小规模服务场景下，这完全不成问题，你甚至驾轻就熟，但当面对上百台集群规模的服务单元时，你可能就没有那么容易轻松的完成这项工作，一种好的解决方案是你可以利用一些成熟的ssh客户端程序框架（比如ganymed-ssh-2）自己编写一些自动化程序，利用多线程方法完成对上百个服务单元下的Linux操作系统安装监控程序（nmon、sysstat相信都是不错的选择）、同时间启动监控、同时间停止监控，自动收集结果日志等功能，相信我，代码可以简洁到不超过100行。<br>全效达标策略总是最理想的测试策略，你在最初选择策略时要尽量追求可以实现它，虽然在实施上你需要通过调动大量的资源来完成它，但它会给你最稳妥和离真相最近的测试结论（而不是测试结果）。<br>TPS达标策略<br>很不幸，你的资源可能达不到实施全效达标策略的条件，而且距离给你的deadline已经为时不远了，你可以试试TPS达标策略。<br>在满足响应时间和成功率需求的前提下，你首先要进行一个TPS的换算，根据全效达标策略中的（真实的）TPS指标计算出高峰时段或全天需完成的总事务数，之后将完成这些事务总数的时间进行缩短，比如在高峰时段4小时时间内需完成1000个事务能够满足原TPS指标，那么就将这个时间缩短为1小时，计算出新的TPS指标，并以此指标为导向开展测试活动。这种策略就像是一场赌博，你需要全面优化你手头的全部测试资源，调整测试场景，尽量短小精悍，使用性能最卓越的测试工具，放弃资源监控让出资源，以达到新的TPS目标，使用能够支撑的最大并发用户数量，以期待在更短的时间内全面完成这一事务总数，从侧面证明被测试系统可以在脱离真实场景的苛刻条件下也能够完成既定目标（在更短、压力更大的情况下都可以完成事务总数的要求）。<br>结果达标皆大欢喜，在这种情况下系统很可能能够承载千万级用户量；但如果结果无法达到满意，你可能就需要结合换算达标策略的结果进行共同分析。<br>换算达标策略<br>有时候你不得不一小步一小步地精心的开展这项千万级用户量在线访问的测试，以弥补你测试资源不足带来的无法使用全效达标策略带来的负面影响，还好你时间充裕，于是开始换算达标策略，顾名思义，你从测试一个服务单元提供的服务级别性能开始，按策略递增，慢慢的你会找出一个可能的趋势，一个趋势函数从大量数据中被推导出来，你几乎可以用它来计算出最大服务单元下的服务级别性能。<br>基准测试<br>合理的基准测试是准确估算的一个必要条件，尤其基础设施所能提供的最大网络和I/O性能，得到这些结果至关重要，这是一个推理的重要依据。<br>对于网络TCP协议性能，你可能手头无法拿到SmartBits或是IXIA这样专业的硬件测试仪表，但你可以试着使用netperf或iperf这样的软件，试着得到一个最大网络吞吐量测试结果，其次是丢包率或时延指标；<br>对于I/O性能，你需要使用IOMeter，建议对磁盘阵列（虚拟环境下你不必过多的考虑其物理实物）在裸设备和文件卷情况下开展IOPS和最大吞吐量的测试，拿到这些指标。<br>相信有了这些数据，你可以在不断递增服务单元的测试过程中，通过收集和观察到的网络和I/O数据，进行推算，发现何时可到达出口带宽或是数据库I/O读写的瓶颈。<br>性能加速比<br>性能加速比是衡量集群环境性能的一个重要指标，它代表这一个集群在不断扩展服务单元下的一个性能损耗趋势。测试单个服务单元的TPS，逐渐增加到2个、3个、4个……，理想情况下当你测出单个服务单元的服务级别性能时，你可以按线性方程计算出最大服务单元下的TPS，但大家都知道，不断扩大集群实际上是一个增益逐渐衰减的过程，如下图：</p>
+<p>性能加速比示意图</p>
+<p>正向性能加速比计算公式参考（用户数、TPS等）：<br>性能加速比=n服务单元值/（n服务单元数 * 单服务单元值）<br>反向性能加速比计算公式参考（响应时间）：<br>性能加速比=（单服务单元值/n服务单元数）/n服务单元值<br>推导加速比的趋势函数，从而预测最大服务级别性能。<br>结合全部数据进行推理<br>结合加速比、监控数据与基准性能测试结果大胆推理出一个合理的可预见的服务级别性能，说服你的组织可以相信这一结果，毕竟它是有理有据的。<br>最后，在生产环境下密切关注实际情况的变化，从而根据实际数据得出新的推理，及时通知组织作出应对。</p>
+]]></content>
+      <tags>
+        <tag>技术</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>记一次清理挖矿程序</title>
+    <url>/2020/01/14/%E8%AE%B0%E4%B8%80%E6%AC%A1%E6%B8%85%E7%90%86%E6%8C%96%E7%9F%BF%E7%A8%8B%E5%BA%8F-1/</url>
+    <content><![CDATA[<h1 id="1、问题查找"><a href="#1、问题查找" class="headerlink" title="1、问题查找"></a>1、问题查找</h1><p> 1.1、top查看程序，发现kdevtmpfsi这个程序占用CPU达到百分之400。并发现COMMAND执行这个程序在/opt下，决定使用find来查看是否有相关的文件。<br> find / -name kdevtmpfs<br> 1.2、将kdevtmpfsi删掉并准备kill掉kdevtmpfsi程序发现这个程序由redis这个用户来启动的，而且redis是一个进程用户。于是打算查看下网络状态<br> <a id="more"></a><br> netstat -natp<br> 根据进程名查看与内网的 tcp 链接异常 ，看到了陌生ip。<br> 1.3、这时候我打算kill掉kdevtmpfsi，这时候发现这个程序还会在启动</p>
+<h1 id="2、解决方案"><a href="#2、解决方案" class="headerlink" title="2、解决方案"></a>2、解决方案</h1><p> 2.1、kdevtmpfsi有守护进程，单独kill掉 kdevtmpfsi 进程会不断恢复占用。守护进程名称为 kinsing，需要kill后才能解决问题。<br> 2.2、相关命令<br> <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">systemctl status kdevtmpfs</span><br><span class="line">ps -aux | grep kinsing</span><br><span class="line">ps -aux | grep kdevtmpfsi</span><br><span class="line">killall  -9   kdevtmpfs</span><br><span class="line">killall  -9   kinsing</span><br><span class="line">find / -name kdevtmpfsi -<span class="built_in">exec</span> rm -rf &#123;&#125; \;</span><br><span class="line">find / -name kinsing -<span class="built_in">exec</span> rm -rf &#123;&#125; \;</span><br></pre></td></tr></table></figure></p>
+]]></content>
+      <tags>
+        <tag>问题</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>记录:gitlab修改域名</title>
+    <url>/2020/04/27/%E8%AE%B0%E5%BD%95-gitlab%E4%BF%AE%E6%94%B9%E5%9F%9F%E5%90%8D/</url>
+    <content><![CDATA[<p>最近对gitlab服务器进行了迁移,迁移之后原有的域名不用了.所以我这里做了下记录</p>
+<a id="more"></a>
+<p>1.首先我们要gitlab的配置文件进行修改</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">vi /opt/gitlab/embedded/service/gitlab-rails/config/gitlab.yml</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>修改host字段,如果你的端口不是80的话可以修改掉</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">gitlab:</span></span><br><span class="line">  <span class="comment">## Web server settings (<span class="doctag">note:</span> host is the FQDN, do not include http://)</span></span><br><span class="line">  <span class="attr">host:</span> <span class="string">xxxxxxxxx.com</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">80</span></span><br><span class="line">  <span class="attr">https:</span> <span class="literal">false</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>2.我们在修改nginx中gitlab-http.conf配置文件</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line"><span class="regexp">/var/</span>opt<span class="regexp">/gitlab/</span>nginx<span class="regexp">/conf/gi</span>tlab-http.conf </span><br><span class="line">将server_name的参数改掉就可以了</span><br></pre></td></tr></table></figure>
+<p>3.重启gitlab跟nginx就可以了(当然我这里用的容器所以只需要重启容器就可以了)</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>gitlab</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>记录: gitlab迁移</title>
+    <url>/2020/04/23/%E8%AE%B0%E5%BD%95-gitlab%E8%BF%81%E7%A7%BB/</url>
+    <content><![CDATA[<h2 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h2><p>我司原有的gitlab仓库运行时间久了,加上机器快到期.刚好可以更换服务器</p>
+<h2 id="备份"><a href="#备份" class="headerlink" title="备份"></a>备份</h2><p>1.对原有的容器进行备份,/etc/gitlab放置了gitlab的配置文件,这个很重要不然后你后面恢复会找不到项目仓库的.</p>
+<a id="more"></a>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">使用 docker cp 容器ID:/etc/gitlab ./</span><br><span class="line"><span class="comment">#将容器中gitlab配置目录copy到本地</span></span><br></pre></td></tr></table></figure>
+<p>2.我们进入到容器中创建备份</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker <span class="built_in">exec</span> -it 容器ID /bin/bash</span><br><span class="line"><span class="built_in">cd</span> /var/opt/gitlab/backups</span><br><span class="line">gitlab-rake gitlab:backup:create</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>3.现在需要启动新的容器</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">docker run -dit -p -c2 -m8G <span class="number">2222</span>:<span class="number">22</span> -p <span class="number">8888</span>:<span class="number">80</span> -v <span class="regexp">/data/gi</span>tlab<span class="regexp">/backups:/</span>var<span class="regexp">/opt/gi</span>tlab<span class="regexp">/backups -v /</span>data<span class="regexp">/gitab/</span>etc:<span class="regexp">/etc/gi</span>tlab --name gitlab gitlab:<span class="number">1</span> </span><br><span class="line"></span><br><span class="line">ps:这里是我将老的容器commit提交了下</span><br><span class="line">  docker commit gitlab</span><br><span class="line">  docker tag 镜像ID gitlab:<span class="number">1</span></span><br><span class="line">  docker save -o gitlab.tar gitlab:<span class="number">1</span></span><br><span class="line">  docker load -i gitlab.tar <span class="comment">#这个需要到新的机器上执行</span></span><br></pre></td></tr></table></figure>
+<p>4.进入新的容器中进行恢复</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /var/opt/gitlab/backups</span><br><span class="line">gitlab-ctl stop</span><br><span class="line">gitlab-rake gitlab:backup:restore BACKUP=1393994389</span><br><span class="line">ps:这里会有提示输入yes即可</span><br></pre></td></tr></table></figure>
+<p>5.重启容器,进行测试看是否少数据</p>
+]]></content>
+      <categories>
+        <category>记录</category>
+        <category>技术</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>记录:使用docker-compose搭建zabbix监控系统</title>
+    <url>/2020/04/10/%E8%AE%B0%E5%BD%95/</url>
+    <content><![CDATA[<h1 id="需求分析"><a href="#需求分析" class="headerlink" title="需求分析"></a>需求分析</h1><p>使用zabbix来监控各个系统的性能(硬盘,CPU,内存)<br>用来监控web服务器的流量和状态<br>监控tomcat的状态(JVM,GC)  </p>
+<a id="more"></a>
+<h1 id="Docker-Compose"><a href="#Docker-Compose" class="headerlink" title="Docker Compose"></a>Docker Compose</h1><p>Docker Compose是一个用来定义和运行复杂应用的Docker工具。一个使用Docker容器的应用，通常由多个容器组成。使用Docker Compose不再需要使用shell脚本来启动容器。<br>Compose 通过一个配置文件来管理多个Docker容器，在配置文件中，所有的容器通过services来定义，然后使用docker-compose脚本来启动，停止和重启应用，和应用中的服务以及所有依赖服务的容器，非常适合组合使用多个容器进行开发的场景。</p>
+<h1 id="操作"><a href="#操作" class="headerlink" title="操作"></a>操作</h1><h2 id="需要创建目录"><a href="#需要创建目录" class="headerlink" title="需要创建目录"></a>需要创建目录</h2><p>在soft目录下创建{web,zabbix-server,mysql,zabbix-agent}的目录 </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mkdir -p ./soft/&#123;web,zabbix-server,mysql,zabbix-agent&#125;  </span><br></pre></td></tr></table></figure>
+<h2 id="在soft目录下创建一个docker-compose-yml的文件"><a href="#在soft目录下创建一个docker-compose-yml的文件" class="headerlink" title="在soft目录下创建一个docker-compose.yml的文件"></a>在soft目录下创建一个docker-compose.yml的文件</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">touch docker-compose.yml</span><br></pre></td></tr></table></figure>
+<h2 id="在docker-compose-yml输入"><a href="#在docker-compose-yml输入" class="headerlink" title="在docker-compose.yml输入"></a>在docker-compose.yml输入</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">version: <span class="string">&#x27;3&#x27;</span></span><br><span class="line">services:</span><br><span class="line">zabbix-mysql:</span><br><span class="line">   image: mysql:5.7</span><br><span class="line">   container_name: zabbix-mysql</span><br><span class="line">   environment:</span><br><span class="line">     MYSQL_ROOT_PASSWORD: User_Password</span><br><span class="line">     MYSQL_DATABASE: zabbix</span><br><span class="line">     MYSQL_USER: zabbix</span><br><span class="line">     MYSQL_PASSWORD: User_Password</span><br><span class="line">   volumes:</span><br><span class="line">      - ./mysql:/var/lib/mysql</span><br><span class="line">zabbix-server:</span><br><span class="line">    image: zabbix/zabbix-server-mysql:latest</span><br><span class="line">    container_name: zabbix-server</span><br><span class="line">    environment:</span><br><span class="line">      DB_SERVER_HOST: <span class="string">&quot;zabbix-mysql&quot;</span></span><br><span class="line">      MYSQL_DATABASE: zabbix</span><br><span class="line">      MYSQL_USER: root</span><br><span class="line">      MYSQL_PASSWORD: User_Password</span><br><span class="line">      MYSQL_ROOT_PASSWORD: User_Password</span><br><span class="line">    volumes:</span><br><span class="line">      - ./zabbix-server:/usr/lib/zabbix/</span><br><span class="line">    ports:</span><br><span class="line">      - <span class="string">&#x27;10051:10051&#x27;</span></span><br><span class="line">    links:</span><br><span class="line">      - zabbix-mysql</span><br><span class="line">      - zabbix-agent  </span><br><span class="line">zabbix-web:</span><br><span class="line">    image: zabbix/zabbix-web-nginx-mysql:latest</span><br><span class="line">    container_name: zabbix-web</span><br><span class="line">    environment:</span><br><span class="line">      DB_SERVER_HOST: <span class="string">&quot;zabbix-mysql&quot;</span></span><br><span class="line">      MYSQL_DATABASE: zabbix</span><br><span class="line">      MYSQL_USER: zabbix</span><br><span class="line">      MYSQL_PASSWORD: User_Password</span><br><span class="line">      MYSQL_ROOT_PASSWORD: User_Password</span><br><span class="line">      ZBX_SERVER_HOST: zabbix-server</span><br><span class="line">      PHP_TZ: Asia/Shanghai</span><br><span class="line">    volumes:</span><br><span class="line">      - ./web:/usr/lib/zabbix</span><br><span class="line">    ports:</span><br><span class="line">      - 80:80</span><br><span class="line">      - 443:443</span><br><span class="line">    links:</span><br><span class="line">      - zabbix-server</span><br><span class="line">      - zabbix-mysql</span><br><span class="line"></span><br><span class="line">zabbix-agent:</span><br><span class="line">    image: zabbix/zabbix-agent:latest</span><br><span class="line">    container_name: zabbix-agent</span><br><span class="line">    environment:</span><br><span class="line">      ZBX_HOSTNAME: zabbix server</span><br><span class="line">      ZBX_SERVER_HOST: 127.0.0.1</span><br><span class="line">    ports:</span><br><span class="line">      - <span class="string">&#x27;10050:10050&#x27;</span></span><br></pre></td></tr></table></figure>
+<h2 id="然后使用docker-compose-up-d启动"><a href="#然后使用docker-compose-up-d启动" class="headerlink" title="然后使用docker-compose up -d启动"></a>然后使用docker-compose up -d启动</h2><h2 id="启动完成检测"><a href="#启动完成检测" class="headerlink" title="启动完成检测"></a>启动完成检测</h2><p>先进入zabbix-web容器中</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker <span class="built_in">exec</span> -it zabbix-web /bin/bash</span><br><span class="line">zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | mysql -uzabbix -p zabbix</span><br></pre></td></tr></table></figure>
+<p>在使用docker ps -a 检测容器是否启动成功<br>如果没有启动成功请使用docker logs -t container_name查看容器日志<br>如:常见故障可能是没有连接到数据库</p>
+]]></content>
+      <tags>
+        <tag>技术</tag>
+        <tag>记录</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>进程 线程 守护进程的区别</title>
+    <url>/2020/03/27/%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B-%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB/</url>
+    <content><![CDATA[<h1 id="什么是进程"><a href="#什么是进程" class="headerlink" title="什么是进程"></a>什么是进程</h1><p>进程(Process)是计算机中已运行程序的实体。用户下达运行程序的命令后，就会产生进程。进程需要一些资源才能完成工作，如CPU使用时间、存储器、文件以及I/O设备，且为依序逐一进行，也就是每个CPU核心任何时间内仅能运行一项进程。</p>
+<h2 id="进程和程序是有本质区别的"><a href="#进程和程序是有本质区别的" class="headerlink" title="进程和程序是有本质区别的"></a>进程和程序是有本质区别的</h2><p>程序是静态的，它是一些保存在磁盘上的指令的有序集合，没有任何执行的概念；<br>而进程是一个动态的概念，它是程序执行的过程，包括了动态创建、调度和消亡的整个过程；<br>它是程序执行和资源管理的最小单位。</p>
+<a id="more"></a>
+
+<h2 id="进行状态"><a href="#进行状态" class="headerlink" title="进行状态"></a>进行状态</h2><p>通过ps aux可以看到进程的状态。</p>
+<p>O：进程正在处理器运行,这个状态从来没有见过.<br>S：休眠状态（sleeping）<br>R：等待运行（runable）R Running or runnable (on run queue) 进程处于运行或就绪状态<br>I：空闲状态（idle）<br>Z：僵尸状态（zombie）<br>T：跟踪状态（Traced）<br>B：进程正在等待更多的内存页<br>D: 不可中断的深度睡眠，一般由IO引起，同步IO在做读或写操作时，cpu不能做其它事情，只能等待，这时进程处于这种状态，如果程序采用异步IO，这种状态应该就很少见到了  </p>
+<p>其中就绪状态表示进程已经分配到除CPU以外的资源，等CPU调度它时就可以马上执行了。运行状态就是正在运行了，获得包括CPU在内的所有资源。等待状态表示因等待某个事件而没有被执行，这时候不耗CPU时间，而这个时间有可能是等待IO、申请不到足够的缓冲区或者在等待信号。</p>
+<h1 id="前台进程跟守护进程的区别"><a href="#前台进程跟守护进程的区别" class="headerlink" title="前台进程跟守护进程的区别"></a>前台进程跟守护进程的区别</h1><p>LINUX后台进程也叫守护进程（Daemon），是运行在后台的一种特殊进程。它独立于控制终端并且周期性地执行某种任务或等待处理某些发生的事件。 </p>
+<p>一般用作系统服务，可以用crontab提交，编辑或者删除相应得作业。 </p>
+<p>守护的意思就是不受终端控制。Linux的大多数服务器就是用守护进程实现的。比如，Internet服务器inetd，Web服务器httpd等。同时，守护进程完成许多系统任务。比如，作业规划进程crond，打印进程lpd等。 </p>
+<p>前台进程就是用户使用的有控制终端的进程 </p>
+<h1 id="进程和线程的区别"><a href="#进程和线程的区别" class="headerlink" title="进程和线程的区别"></a>进程和线程的区别</h1><p>进程和线程的主要差别在于它们是不同的操作系统资源管理方式。进程有独立的地址空间，一个进程崩溃后，在保护模式下不会对其它进程产生影响，而线程只是一个进程中的不同执行路径。线程有自己的堆栈和局部变量，但线程之间没有单独的地址空间，一个线程死掉就等于整个进程死掉，所以多进程的程序要比多线程的程序健壮，但在进程切换时，耗费资源较大，效率要差一些。但对于一些要求同时进行并且又要共享某些变量的并发操作，只能用线程，不能用进程。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">1) 简而言之,一个程序至少有一个进程,一个进程至少有一个线程.</span><br><span class="line"></span><br><span class="line">2) 线程的划分尺度小于进程，使得多线程程序的并发性高。</span><br><span class="line"></span><br><span class="line">3) 另外，进程在执行过程中拥有独立的内存单元，而多个线程共享内存，从而极大地提高了程序的运行效率。</span><br><span class="line"></span><br><span class="line">4) 线程在执行过程中与进程还是有区别的。每个独立的线程有一个程序运行的入口、顺序执行序列和程序的出口。但是线程不能够独立执行，必须依存在应用程序中，由应用程序提供多个线程执行控制。</span><br><span class="line"></span><br><span class="line">5) 从逻辑角度来看，多线程的意义在于一个应用程序中，有多个执行部分可以同时执行。但操作系统并没有将多个线程看做多个独立的应用，来实现进程的调度和管理以及资源分配。这就是进程和线程的重要区别。</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>技术</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>阿里云ECS无法访问</title>
+    <url>/2020/05/06/%E9%98%BF%E9%87%8C%E4%BA%91ECS%E6%97%A0%E6%B3%95%E8%AE%BF%E9%97%AE/</url>
+    <content><![CDATA[<h2 id="NET原因"><a href="#NET原因" class="headerlink" title="NET原因"></a>NET原因</h2><p>因为公司网络是通过net转发出去的,多请求是源ip导致无法访问到web服务</p>
+<a id="more"></a>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><p>在ecs服务器上/etc/sysctl.conf中增加</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">net</span>.ipv<span class="number">4</span>.tcp_tw_recycle=<span class="number">0</span></span><br><span class="line"><span class="attribute">net</span>.ipv<span class="number">4</span>.tcp_timestamps=<span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p>然后使用sysctl -p</p>
+]]></content>
+      <categories>
+        <category>技术</category>
+      </categories>
+      <tags>
+        <tag>技术</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Python标准库、第三方和工具作用</title>
+    <url>/2020/08/24/Python%E6%A0%87%E5%87%86%E5%BA%93%E3%80%81%E7%AC%AC%E4%B8%89%E6%96%B9%E5%92%8C%E5%B7%A5%E5%85%B7%E4%BD%9C%E7%94%A8/</url>
+    <content><![CDATA[<p>导读：Python数据工具箱涵盖从数据源到数据可视化的完整流程中涉及到的常用库、函数和外部工具。其中既有Python内置函数和标准库，又有第三方库和工具。</p>
+<p>这些库可用于文件读写、网络抓取和解析、数据连接、数清洗转换、数据计算和统计分析、图像和视频处理、音频处理、数据挖掘/机器学习/深度学习、数据可视化、交互学习和集成开发以及其他Python协同数据工作工具。</p>
+<p>为了区分不同对象的来源和类型，本文将在描述中通过以下方法进行标识：</p>
+<p>Python内置函数：Python自带的内置函数。函数无需导入，直接使用。例如要计算-3.2的绝对值，直接使用abs函数，方法是</p>
+<a id="more"></a>
+
+<p>abs(-3.2) </p>
+<p>Python标准库：Python自带的标准库。Python标准库无需安装，只需要先通过import方法导入便可使用其中的方法。例如导入string模块，然后使用其中的find方法：</p>
+<p>import string<br>string.find(‘abcde’,’b’)</p>
+<p>第三方库：Python的第三方库。这些库需要先进行安装（部分可能需要配置）。</p>
+<p>外部工具：非Python写成的库或包，用于Python数据工作的相关工具。</p>
+<p>「推荐度」3星最高，1星最低。</p>
+<p>01 文件读写</p>
+<p>文件的读写包括常见的txt、Excel、xml、二进制文件以及其他格式的数据文本，主要用于本地数据的读写。</p>
+<p>640?wx_fmt=jpeg</p>
+<ol>
+<li>open(name[, mode[, buffering]])</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：Python默认的文件读写方法</p>
+<p>推荐度：★★★</p>
+<ol start="2">
+<li>numpy.loadtxt、numpy.load和numpy.fromfile</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Numpy自带的读写函数，包括loadtxt、load和fromfile，用于文本、二进制文件读写</p>
+<p>推荐度：★★★</p>
+<ol start="3">
+<li>pandas.read_*</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Pandas自带的read文件方法，例如ead_csv、read_fwf、read_table等，用于文本、Excel、二进制文件、HDF5、表格、SAS文件、SQL数据库、Stata文件等的读写</p>
+<p>推荐度：★★★</p>
+<ol start="4">
+<li>xlrd</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：用于Excel文件读取</p>
+<p>推荐度：★★</p>
+<ol start="5">
+<li>xlwt</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：用于Excel文件写入</p>
+<p>推荐度：★★</p>
+<ol start="6">
+<li>pyexcel-xl</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：用于Excel文件读写</p>
+<p>推荐度：★★</p>
+<ol start="7">
+<li>xluntils</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：用于Excel文件读写</p>
+<p>推荐度：★★</p>
+<ol start="8">
+<li>pyExcelerator</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：用于Excel文件读写</p>
+<p>推荐度：★</p>
+<ol start="9">
+<li>openpyxl</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：用于Excel文件读写</p>
+<p>推荐度：★</p>
+<ol start="10">
+<li>lxml</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：xml和HTML读取和解析</p>
+<p>推荐度：★★★</p>
+<ol start="11">
+<li>xml</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：xml对象解析和格式化处理</p>
+<p>推荐度：★★★</p>
+<ol start="12">
+<li>libxml2</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：xml对象解析和格式化处理</p>
+<p>推荐度：★</p>
+<ol start="13">
+<li>xpath</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：xml对象解析和格式化处理</p>
+<p>推荐度：★★</p>
+<ol start="14">
+<li>win32com</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：有关Windows系统操作、Office（Word、Excel等）文件读写等的综合应用库</p>
+<p>推荐度：★</p>
+<p>02 网络抓取和解析</p>
+<p>网络抓取和解析用于从互联网中抓取信息，并对HTML对象进行处理，有关xml对象的解析和处理的库在“01 文件读写”中找到。</p>
+<p>640?wx_fmt=jpeg</p>
+<ol start="15">
+<li>requests</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：网络请求库，提供多种网络请求方法并可定义复杂的发送信息</p>
+<p>推荐度：★★★</p>
+<ol start="16">
+<li>urllib</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Python自带的库，简单的读取特定URL并获得返回的信息</p>
+<p>推荐度：★★</p>
+<ol start="17">
+<li>urllib2</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Python自带的库，读取特定URL并获得返回的信息，相对于urllib可处理更多HTTP信息，例如cookie、身份验证、重定向等</p>
+<p>推荐度：★★</p>
+<ol start="18">
+<li>urlparse</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Python自带的URL解析库，可自动解析URL不同的域、参数、路径等</p>
+<p>推荐度：★★★</p>
+<ol start="19">
+<li>HTMLParser</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Python自带的HTML解析模块，能够很容易的实现HTML文件的分析</p>
+<p>推荐度：★★★</p>
+<ol start="20">
+<li>Scapy</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：分布式爬虫框架，可用于模拟用户发送、侦听和解析并伪装网络报文，常用于大型网络数据爬取</p>
+<p>推荐度：★★★</p>
+<ol start="21">
+<li>Beautiful Soup</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Beautiful Soup是网页数据解析和格式化处理工具，通常配合Python的urllib、urllib2等库一起使用</p>
+<p>推荐度：★★★</p>
+<p>03 数据库连接</p>
+<p>数据库连接可用于连接众多数据库以及访问通用数据库接口，可用于数据库维护、管理和增、删、改、查等日常操作。</p>
+<p>640?wx_fmt=jpeg</p>
+<ol start="22">
+<li>mysql-connector-python</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：MySQL官方驱动连接程序</p>
+<p>推荐度：★★★</p>
+<ol start="23">
+<li>pymysql</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：MySQL连接库，支持Python3</p>
+<p>推荐度：★★★</p>
+<ol start="24">
+<li>MySQL-python</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：MySQL连接库</p>
+<p>推荐度：★★</p>
+<ol start="25">
+<li>cx_Oracle</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Oracle连接库</p>
+<p>推荐度：★★★</p>
+<ol start="26">
+<li>psycopg2</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Python编程语言中非常受欢迎的PostgreSQL适配器</p>
+<p>推荐度：★★★</p>
+<ol start="27">
+<li>redis</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Redis连接库</p>
+<p>推荐度：★★★</p>
+<ol start="28">
+<li>pymongo</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：MongoDB官方驱动连接程序</p>
+<p>推荐度：★★★</p>
+<ol start="29">
+<li>HappyBase</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：HBase连接库</p>
+<p>推荐度：★★★</p>
+<ol start="30">
+<li>py2neo</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Neo4j连接库</p>
+<p>推荐度：★★★</p>
+<ol start="31">
+<li>cassandra-driver</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Cassandra（1.2+）和DataStax Enterprise（3.1+）连接库</p>
+<p>推荐度：★★★</p>
+<ol start="32">
+<li>sqlite3</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Python自带的模块，用于操作SQLite数据库</p>
+<p>推荐度：★★★</p>
+<ol start="33">
+<li>pysqlite2</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：SQLite 3.x连接库</p>
+<p>推荐度：★★</p>
+<ol start="34">
+<li>bsddb3</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Berkeley DB连接库</p>
+<ol start="35">
+<li>bsddb</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Python自带的模块，提供了一个到Berkeley DB库的接口</p>
+<p>推荐度：★★</p>
+<ol start="36">
+<li>dbhash</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Python自带的模块，dbhash模块提供了使用BSD数据库库打开数据库的功能。该模块镜像了提供对DBM样式数据库访问的其他Python数据库模块的接口。bsddb模块需要使用dbhash</p>
+<p>推荐度：★★</p>
+<ol start="37">
+<li>adodb</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：ADOdb是一个数据库抽象库，支持常见的数据和数据库接口并可自行进行数据库扩展，该库可以对不同数据库中的语法进行解析和差异化处理，具有很高的通用性</p>
+<p>推荐度：★★★</p>
+<ol start="38">
+<li>SQLObject</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：SQLObject是一种流行的对象关系管理器，用于向数据库提供对象接口，其中表为类、行为实例、列为属性</p>
+<p>推荐度：★★</p>
+<ol start="39">
+<li>SQLAlchemy</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：SQLAlchemy是Python SQL工具包和对象关系映射器，为应用程序开发人员提供了SQL的全部功能和灵活性控制</p>
+<p>推荐度：★★</p>
+<ol start="40">
+<li>ctypes</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：ctypes是Python的一个外部库，提供和C语言兼容的数据类型，可以很方便地调用C DLL中的函数</p>
+<p>推荐度：★★★</p>
+<ol start="41">
+<li>pyodbc</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Python通过ODBC访问数据库的接口库</p>
+<p>推荐度：★★★</p>
+<ol start="42">
+<li>Jython</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Python通过JDBC访问数据库的接口库</p>
+<p>推荐度：★★★</p>
+<p>04 数据清洗转换</p>
+<p>数据清洗转换主用于数据正式应用之前的预处理工作。</p>
+<p>640?wx_fmt=jpeg</p>
+<ol start="43">
+<li>frozenset([iterable])</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：返回一个新的frozenset对象，可选择从iterable取得的元素</p>
+<p>推荐度：★★★</p>
+<ol start="44">
+<li>int(x)</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：返回x的整数部分</p>
+<p>推荐度：★★★</p>
+<ol start="45">
+<li>isinstance(object, classinfo)</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：返回object是否是指定的classinfo实例信息</p>
+<p>推荐度：★★★</p>
+<ol start="46">
+<li>len(s)</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：返回对象的长度或项目数量</p>
+<p>推荐度：★★★</p>
+<ol start="47">
+<li>long(x)</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：返回由字符串或数字x构造的长整型对象</p>
+<p>推荐度：★★★</p>
+<ol start="48">
+<li>max(iterable[, key])</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：返回一个可迭代或最大的两个或多个参数中的最大项</p>
+<p>推荐度：★★★</p>
+<ol start="49">
+<li>min(iterable[, key])</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：返回一个可迭代或最大的两个或多个参数中的最小项</p>
+<p>推荐度：★★★</p>
+<ol start="50">
+<li>range(start, stop[, step])</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：用于与for循环一起创建循环列表，通过指定start（开始）、stop（结束）和step（步长）控制迭代次数并获取循环值</p>
+<p>推荐度：★★★</p>
+<ol start="51">
+<li>raw_input(prompt)</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：捕获用户输入并作为字符串返回（不推荐使用input作为用户输入的捕获函数）</p>
+<p>推荐度：★★★</p>
+<ol start="52">
+<li>round(number[, ndigits])</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：返回number小数点后ndigits位的四舍五入的浮点数</p>
+<p>推荐度：★★★</p>
+<ol start="53">
+<li>set([iterable])</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：返回一个新的集合对象，可选择从iterable获取的元素</p>
+<p>推荐度：★★★</p>
+<ol start="54">
+<li>slice(start, stop[, step])</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：返回表示由范围（start、stop、step）指定的索引集的切片对象</p>
+<p>推荐度：★★</p>
+<ol start="55">
+<li>sorted(iterable[, cmp[, key[, reverse]]])</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：从iterable的项中返回一个新的排序列表</p>
+<p>推荐度：★★★</p>
+<ol start="56">
+<li>xrange(start, stop[, step])</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：此函数与range()非常相似，但返回一个xrange对象而不是列表</p>
+<p>推荐度：★★★</p>
+<ol start="57">
+<li>string</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：字符串处理库，可实现字符串查找、分割、组合、替换、去重、大小写转换及其他格式化处理</p>
+<p>推荐度：★★★</p>
+<ol start="58">
+<li>re</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：正则表达式模块，在文本和字符串处理中经常使用</p>
+<p>推荐度：★★★</p>
+<ol start="59">
+<li>random</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：该模块为各种分布实现伪随机数生成器，支持数据均匀分布、正态（高斯）分布、对数正态分布、负指数分布、伽马和β分布等</p>
+<p>推荐度：★★★</p>
+<ol start="60">
+<li>os</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：用于新建、删除、权限修改、切换路径等目录操作，以及调用执行系统命令</p>
+<p>推荐度：★★★</p>
+<ol start="61">
+<li>os.path</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：针对目录的遍历、组合、分割、判断等操作，常用于数据文件的判断、查找、合并</p>
+<p>推荐度：★★★</p>
+<ol start="62">
+<li>prettytable</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：格式化表格输出模块</p>
+<p>推荐度：★★</p>
+<ol start="63">
+<li>json</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Python对象与json对象的转换</p>
+<p>推荐度：★★★</p>
+<ol start="64">
+<li>base64</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：将任意二进制字符串编码和解码为文本字符串的Base16，Base32和Base64</p>
+<p>推荐度：★★★</p>
+<p>05 数据计算和统计分析</p>
+<p>数据计算和统计分析主要用于数据探查、计算和初步数据分析等工作。</p>
+<p>640?wx_fmt=jpeg</p>
+<ol start="65">
+<li>numpy</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：NumPy是Python科学计算的基础工具包，很多Python数据计算工作库都依赖它</p>
+<p>推荐度：★★★</p>
+<ol start="66">
+<li>scipy</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Scipy是一组专门解决科学和工程计算不同场景的主题工具包</p>
+<p>推荐度：★★★</p>
+<ol start="67">
+<li>pandas</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Pandas是一个用于Python数据分析的库，它的主要作用是进行数据分析。Pandas提供用于进行结构化数据分析的二维的表格型数据结构DataFrame，类似于R中的数据框，能提供类似于数据库中的切片、切块、聚合、选择子集等精细化操作，为数据分析提供了便捷</p>
+<p>推荐度：★★★</p>
+<ol start="68">
+<li>statsmodels</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Statsmodels是Python的统计建模和计量经济学工具包，包括一些描述性统计、统计模型估计和统计测试，集成了多种线性回归模型、广义线性回归模型、离散数据分布模型、时间序列分析模型、非参数估计、生存分析、主成分分析、核密度估计以及广泛的统计测试和绘图等功能</p>
+<p>推荐度：★★★</p>
+<ol start="69">
+<li>abs(x)</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：返回x的绝对值</p>
+<p>推荐度：★★★</p>
+<ol start="70">
+<li>cmp(x, y)</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：比较两个对象x和y，并根据结果返回一个整数。如果x &lt;y，则返回值为负数，如果x == y则为零，如果x&gt; y则返回值为正</p>
+<p>推荐度：★★</p>
+<ol start="71">
+<li>float(x)</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：返回从数字或字符串x构造的浮点数</p>
+<p>推荐度：★★★</p>
+<ol start="72">
+<li>pow(x, y[, z])</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：返回x的y次幂。如果z存在，则返回x的y次幂，模z</p>
+<p>推荐度：★★★</p>
+<ol start="73">
+<li>sum(iterable[, start])</li>
+</ol>
+<p>类型：Python内置函数</p>
+<p>描述：从左到右依次迭代，返回总和</p>
+<p>推荐度：★★★</p>
+<ol start="74">
+<li>math</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：数学函数库，包括正弦、余弦、正切、余切、弧度转换、对数运算、圆周率、绝对值、取整等数学计算方法</p>
+<p>推荐度：★★★</p>
+<ol start="75">
+<li>cmath</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：与math基本一致，区别是cmath运算的是复数</p>
+<p>推荐度：★★</p>
+<ol start="76">
+<li>decimal</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：10进制浮点运算</p>
+<p>推荐度：★★</p>
+<ol start="77">
+<li>fractions</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：分数模块提供对有理数算术的支持</p>
+<p>推荐度：★★</p>
+<p>06 自然语言处理和文本挖掘</p>
+<p>自然语言处理和文本挖掘库主要用于以自然语言文本为对象的数据处理和建模。</p>
+<p>640?wx_fmt=jpeg</p>
+<ol start="78">
+<li>nltk</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：NLTK是一个Python自然语言处理工具，它用于对自然语言进行分类、解析和语义理解。目前已经有超过50种语料库和词汇资源</p>
+<p>推荐度：★★★</p>
+<ol start="79">
+<li>pattern</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Pattern是一个网络数据挖掘Python工具包，提供了用于网络挖掘（如网络服务、网络爬虫等）、自然语言处理（如词性标注、情感分析等）、机器学习（如向量空间模型、分类模型等）、图形化的网络分析模型</p>
+<p>推荐度：★★★</p>
+<ol start="80">
+<li>gensim</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Gensim是一个专业的主题模型（发掘文字中隐含主题的一种统计建模方法）Python工具包，用来提供可扩展统计语义、分析纯文本语义结构以及检索语义上相似的文档</p>
+<p>推荐度：★★★</p>
+<ol start="81">
+<li>结巴分词</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：结巴分词是国内流行的Python文本处理工具包，分词模式分为三种模式：精确模式、全模式和搜索引擎模式，支持繁体分词、自定义词典等，是非常好的Python中文分词解决方案，可以实现分词、词典管理、关键字抽取、词性标注等</p>
+<p>推荐度：★★★</p>
+<ol start="82">
+<li>SnowNLP</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：SnowNLP是一个Python写的类库，可以方便的处理中文文本内容。该库是受到了TextBlob的启发而针对中文处理写的类库，和TextBlob不同的是这里没有用NLTK，所有的算法都是自己实现的，并且自带了一些训练好的字典</p>
+<p>推荐度：★★</p>
+<ol start="83">
+<li>smallseg</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Smallseg是一个开源的、基于DFA的轻量级的中文分词工具包。可自定义词典、切割后返回登录词列表和未登录词列表、有一定的新词识别能力</p>
+<p>推荐度：★★</p>
+<ol start="84">
+<li>spaCy</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：spaCy是一个Python自然语言处理工具包，它结合Python和Cython使得自然语言处理能力达到了工业强度</p>
+<p>推荐度：★★★</p>
+<ol start="85">
+<li>TextBlob</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：TextBlob 是一个处理文本数据的Python库，可用来做词性标注、情感分析、文本翻译、名词短语抽取、文本分类等</p>
+<p>推荐度：★★</p>
+<ol start="86">
+<li>PyNLPI</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：PyNLPI是一个适合各种自然语言处理任务的集合库，可用于中文文本分词、关键字分析等，尤其重要的是其支持中英文映射，支持UTF-8和GBK编码的字符串等</p>
+<p>推荐度：★★★</p>
+<ol start="87">
+<li>synonyms</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：中文近义词工具包，可用于自然语言理解的很多任务：文本对齐，推荐算法，相似度计算，语义偏移，关键字提取，概念提取，自动摘要，搜索引擎等。</p>
+<p>推荐度：★★★</p>
+<p>07 图像和视频处理</p>
+<p>图像处理和视频处理主要适用于基于图像的操作、处理、分析和挖掘，如人脸识别、图像识别、目标跟踪、图像理解等。</p>
+<p>640?wx_fmt=jpeg</p>
+<ol start="88">
+<li>PIL/Pillow</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：PIL是一个常用的图像读取、处理和分析的库，提供了多种数据处理、变换的操作方法和属性。PIL仅支持到2.7版本且已经很久没有更新，一群志愿者基于PIL发布了新的分支Pillow。Pillow同时支持Python2和Python3并且加入很多新的功能</p>
+<p>推荐度：★★</p>
+<ol start="89">
+<li>OpenCV</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：OpenCV是一个强大的图像和视频工作库。它提供了多种程序接口，支持跨平台（包括移动端）应用。OpenCV的设计效率很高，它以优化的C / C ++编写，库可以利用多核处理。除了对图像进行基本处理外，还支持图像数据建模，并预制了多种图像识别引擎，如人脸识别</p>
+<p>推荐度：★★★</p>
+<ol start="90">
+<li>scikit-image</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：scikit-image（也称skimage）是一个图像处理库，支持颜色模式转换、滤镜、绘图、图像处理、特征检测等多种功能</p>
+<p>推荐度：★★</p>
+<ol start="91">
+<li>imageop</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Python自带的函数，对图像基本操作，包括裁剪、缩放、模式转换</p>
+<p>推荐度：★</p>
+<ol start="92">
+<li>colorsys</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Python自带的函数，实现不同图像色彩模式的转换</p>
+<p>推荐度：★</p>
+<ol start="93">
+<li>imghdr</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Python自带的函数，返回图像文件的类型</p>
+<p>推荐度：★</p>
+<p>08 音频处理</p>
+<p>音频处理主要适用于基于声音的处理、分析和建模，主要应用于语音识别、语音合成、语义理解等。</p>
+<p>640?wx_fmt=jpeg</p>
+<ol start="94">
+<li>TimeSide</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：TimeSide是一个能够进行音频分析、成像、转码、流媒体和标签处理的Python框架，可以对任何音频或视频内容非常大的数据集进行复杂的处理</p>
+<p>推荐度：★★★</p>
+<ol start="95">
+<li>audiolazy</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：audiolazy是一个用于实时声音数据流处理的库，支持实时数据应用处理、无限数据序列表示、数据流表示等</p>
+<p>推荐度：★★</p>
+<ol start="96">
+<li>pydub</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：pydub支持多种格式声音文件，可进行多种信号处理（例如压缩、均衡、归一化）、信号生成（例如正弦、方波、锯齿等）、音效注册、静音处理等</p>
+<p>推荐度：★★★</p>
+<ol start="97">
+<li>audioop</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Python自带的函数，可实现对声音片段的一些常用操作</p>
+<p>推荐度：★★</p>
+<ol start="98">
+<li>tinytag</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：tinytag用于读取多种声音文件的元数据，涵盖MP3、OGG、OPUS、MP4、M4A、FLAC、WMA、Wave等格式</p>
+<p>推荐度：★★</p>
+<ol start="99">
+<li>aifc</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Python自带的函数，读写AIFF和AIFC文件</p>
+<p>推荐度：★</p>
+<ol start="100">
+<li>sunau</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Python自带的函数，读写Sun AU文件</p>
+<p>推荐度：★</p>
+<ol start="101">
+<li>wave</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Python自带的函数，读写WAV文件</p>
+<p>推荐度：★★</p>
+<ol start="102">
+<li>chunk</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Python自带的函数，读取EA IFF 85块格式的文件</p>
+<p>推荐度：★</p>
+<ol start="103">
+<li>sndhdr</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：Python自带的函数，返回声音文件的类型</p>
+<p>推荐度：★</p>
+<ol start="104">
+<li>ossaudiodev</li>
+</ol>
+<p>类型：Python标准库</p>
+<p>描述：该模块支持访问OSS（开放声音系统）音频接口</p>
+<p>推荐度：★★★</p>
+<p>09 数据挖掘/机器学习/深度学习</p>
+<p>数据挖掘、机器学习和深度学习等是Python进行数据建模和挖掘学习的核心模块。</p>
+<p>640?wx_fmt=jpeg</p>
+<ol start="105">
+<li>Scikit-Learn</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：scikit-learn（也称SKlearn）是一个基于Python的机器学习综合库，内置监督式学习和非监督式学习机器学习方法，包括各种回归、聚类、分类、流式学习、异常检测、神经网络、集成方法等主流算法类别，同时支持预置数据集、数据预处理、模型选择和评估等方法，是一个非常完整、流行的机器学习工具库</p>
+<p>推荐度：★★★</p>
+<ol start="106">
+<li>TensorFlow</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：TensorFlow 是谷歌的第二代机器学习系统，内建深度学习的扩展支持，任何能够用计算流图形来表达的计算，都可以使用 TensorFlow</p>
+<p>推荐度：★★★</p>
+<ol start="107">
+<li>NuPIC</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：NuPIC是一个以HTM（分层时间记忆）学习算法为工具的机器智能平台。NuPIC适合于各种各样的问题，尤其适用于检测异常和预测应用</p>
+<p>推荐度：★★★</p>
+<ol start="108">
+<li>PyTorch</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：PyTorch是FaceBook推出的深度学习框架，它基于Python（而非lua）产生，它提供的动态计算图是显著区别于Tensorflow等其他学习框架的地方。</p>
+<p>推荐度：★★</p>
+<ol start="109">
+<li>Orange</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Orange通过图形化操作界面，提供交互式数据分析功能，尤其适用于分类、聚类、回归、特征选择和交叉验证工作</p>
+<p>推荐度：★★★</p>
+<ol start="110">
+<li>theano</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Theano是非常成熟的深度学习库。它与Numpy紧密集成，支持GPU计算、单元测试和自我验证</p>
+<p>推荐度：★★★</p>
+<ol start="111">
+<li>keras</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Keras是一个用Python编写的高级神经网络API，能够运行在TensorFlow或者Theano之上，它的开发重点是实现快速实验</p>
+<p>推荐度：★★</p>
+<ol start="112">
+<li>neurolab</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Neurolab是具有灵活网络配置和Python学习算法的基本神经网络算法库。它包含通过递归神经网络（RNN）实现的不同变体，该库是同类RNN API中最好的选择之一</p>
+<p>推荐度：★★</p>
+<ol start="113">
+<li>PyLearn2</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：PyLearn2是基于Theano的深度学习库，它旨在提供极大的灵活性，并使研究人员可以进行自由可控制，参数和属性的灵活、开放配置是亮点</p>
+<p>推荐度：★★★</p>
+<ol start="114">
+<li>OverFeat</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：OverFeat是一个深度学习库，主要用于图片分类、定位物体检测</p>
+<p>推荐度：★★</p>
+<ol start="115">
+<li>Pyevolve</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Pyevolve是一个完整的遗传算法框架，也支持遗传编程</p>
+<p>推荐度：★★</p>
+<ol start="116">
+<li>Caffe2</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Cafffe2也是FaceBook推出的深度学习框架，相比于PyTorch 更适合于研究，Caffe2 适合大规模部署，主要用于计算机视觉，它对图像识别的分类具有很好的应用效果</p>
+<p>推荐度：★★</p>
+<p>10 数据可视化</p>
+<p>数据可视化主要用于做数据结果展示、数据模型验证、图形交互和探查等方面。</p>
+<p>640?wx_fmt=jpeg</p>
+<ol start="117">
+<li>Matplotlib</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Matplotlib是Python的2D绘图库，它以各种硬拷贝格式和跨平台的交互式环境生成出版质量级别的图形，开发者可以仅需要几行代码，便可以生成多种高质量图形</p>
+<p>推荐度：★★★</p>
+<ol start="118">
+<li>pyecharts</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：基于百度Echarts的强大的可视化工具库，其提供的图形功能众多，尤其对于复杂关系的展示能力较强</p>
+<p>推荐度：★★★</p>
+<ol start="119">
+<li>seaborn</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Seaborn是在Matplotlib的基础上进行了更高级的API封装，它可以作为Matplotlib的补充</p>
+<p>推荐度：★★★</p>
+<ol start="120">
+<li>bokeh</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Bokeh是一种交互式可视化库，可以在WEB浏览器中实现美观的视觉效果</p>
+<p>推荐度：★★★</p>
+<ol start="121">
+<li>Plotly</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Plotly提供的图形库可以进行在线WEB交互，并提供具有出版品质的图形，支持线图、散点图、区域图、条形图、误差条、框图、直方图、热图、子图、多轴、极坐标图、气泡图、玫瑰图、热力图、漏斗图等众多图形</p>
+<p>推荐度：★★★</p>
+<ol start="122">
+<li>VisPy</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：VisPy是用于交互式科学可视化的Python库，旨在实现快速，可扩展和易于使用</p>
+<p>推荐度：★★</p>
+<ol start="123">
+<li>PyQtGraph</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：PyQtGraph是一个建立在PyQt4 / PySide和numpy之上的纯Python图形和GUI库，主要用于数学/科学/工程应用</p>
+<p>推荐度：★★</p>
+<ol start="124">
+<li>ggplot</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：ggplot是用Python实现的图形输出库，类似于 R中的图形展示版本</p>
+<p>推荐度：★★★</p>
+<p>11 交互学习和集成开发</p>
+<p>交互学习和集成开发主要用来做Python开发、调试和集成之用，包括Python集成开发环境和IDE。</p>
+<p>640?wx_fmt=jpeg</p>
+<ol start="125">
+<li>IPython/ Jupyter</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：IPython 是一个基于Python 的交互式shell，比默认的Python shell 好用得多，支持变量自动补全、自动缩进、交互式帮助、魔法命令、系统命令等，内置了许多很有用的功能和函数。从IPython4.0开始，IPython衍生出了IPython和Jupyter两个分支。在该分支正式出现之前，IPython其实已经拥有了ipython notebook功能，因此，Jupyter更像是一个ipython notebook的升级版。</p>
+<p>推荐度：★★★</p>
+<ol start="126">
+<li>Elpy</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Elpy是Emacs用于Python的开发环境，它结合并配置了许多其他软件包，它们都是用Emacs Lisp和Python编写的</p>
+<p>推荐度：★★</p>
+<ol start="127">
+<li>PTVS</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Visual Studio 的 Python 工具</p>
+<p>推荐度：★★</p>
+<ol start="128">
+<li>PyCharm</li>
+</ol>
+<p>类型：外部工具</p>
+<p>描述：PyCharm带有一整套可以帮助用户在使用Python语言开发时提高其效率的工具，比如调试、语法高亮、项目管理、代码跳转、智能提示、自动完成、单元测试、版本控制并可集成IPython、系统终端命令行等，在PyCharm里几乎就可以实现所有有关Python工作的全部过程</p>
+<p>推荐度：★★★</p>
+<ol start="129">
+<li>LiClipse</li>
+</ol>
+<p>类型：外部工具</p>
+<p>描述：LiClipse是基于Eclipse的免费多语言 IDE，通过其中的PyDev可支持 Python开发应用</p>
+<p>推荐度：★★</p>
+<ol start="130">
+<li>Spyder</li>
+</ol>
+<p>类型：外部工具</p>
+<p>描述：Spyder是一个开源的Python IDE，由IPython和众多流行的Python库的支持，是一个具备高级编辑、交互式测试、调试以及数字计算环境的交互式开发环境</p>
+<p>推荐度：★★</p>
+<p>12 其他Python协同数据工作工具</p>
+<p>其他Python协同数据工作工具指除了上述主题以外，其他在数据工作中常用的工具或库。</p>
+<ol start="131">
+<li>tesseract-ocr</li>
+</ol>
+<p>类型：外部工具</p>
+<p>描述：这是一个Google支持的开源OCR图文识别项目，支持超过200种语言（包括中文），并支持自定义训练字符集，支持跨Windows、Linux、Mac OSX 多平台使用</p>
+<p>推荐度：★★★</p>
+<ol start="132">
+<li>RPython</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：R集成库</p>
+<p>推荐度：★★★</p>
+<ol start="133">
+<li>Rpy2</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Python连接R的库</p>
+<ol start="134">
+<li>matpython</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：MATLAB集成库</p>
+<p>推荐度：★★★</p>
+<ol start="135">
+<li>Lunatic Python</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Lua集成库</p>
+<p>推荐度：★★</p>
+<ol start="136">
+<li>PyCall.jl</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Julia集成库</p>
+<p>推荐度：★★</p>
+<ol start="137">
+<li>PySpark</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Spark提供的Python API</p>
+<p>推荐度：★★★</p>
+<ol start="138">
+<li>dumbo</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：这个模块可以让Pythoner轻松的编写和运行 Hadoop 程序，程序版本比较早，可以作为参考</p>
+<p>推荐度：★★</p>
+<ol start="139">
+<li>dpark</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Python对Spark的克隆版本，类MapReduce框架</p>
+<p>推荐度：★★</p>
+<ol start="140">
+<li>streamparse</li>
+</ol>
+<p>类型：第三方库</p>
+<p>描述：Streamparse允许通过Storm对实时数据流运行Python代码</p>
+<p>推荐度：★★★</p>
+]]></content>
+      <categories>
+        <category>python</category>
+      </categories>
+      <tags>
+        <tag>python</tag>
+      </tags>
+  </entry>
+</search>
